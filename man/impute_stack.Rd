@@ -6,6 +6,20 @@
 \usage{
 impute_stack(dataset, newdata, method = "mf", seed = 1L, ...)
 }
+\arguments{
+\item{dataset}{dataset}
+
+\item{newdata}{newdata}
+
+\item{method}{One among: 'mf', 'proximity'}
+
+\item{seed}{seed}
+
+\item{...}{dotdotdot}
+}
+\value{
+completed dataset
+}
 \description{
 impute_stack
 }

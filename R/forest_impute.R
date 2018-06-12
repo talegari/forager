@@ -25,6 +25,8 @@
 #'   the metric_relative.
 #' @param maxIter (positive integer) Maximum number of iterations.
 #' @param seed (positive integer) seed for growing a forest.
+#' @param ... Arguments to be passed to synthetic_forest in the unsupervised
+#'   case.
 #' @return A list with these elements:
 #'
 #'   \itemize{
@@ -42,8 +44,8 @@
 #' \itemize{ \item In the unsupervised case, when "synthetic" method is chosen,
 #' a random forest is grown to separate actual data from synthetic data. When
 #' the predictMethod is "terminalNodes", the proximity matrix is obtained using
-#' \code{\link{predict_proximity_terminalNodes}}. In the supervised case, a
-#' random forest model is provided to the function.
+#' \code{\link{predict_proximity_observations_terminalNodes}}. In the supervised
+#' case, a random forest model is provided to the function.
 #'
 #' \item The missing data in each covariate is imputed by averaging non-missing
 #' values of the covariate where the weights are the proximities.
@@ -66,14 +68,13 @@ forest_impute <- function(dataset
                           , seed          = 1L
                           , ...
                           ){
-  # TODO add assertions
   arguments <- list(...)
 
   datasetComplete       <- dataset[[1]]
   datasetMissingBoolean <- dataset[[2]]
 
-  assertthat::assertthat(inherits(datasetComplete, "data.frame"))
-  assertthat::assertthat(inherits(datasetMissingBoolean, "data.frame"))
+  assertthat::assert_that(inherits(datasetComplete, "data.frame"))
+  assertthat::assert_that(inherits(datasetMissingBoolean, "data.frame"))
   assertthat::assert_that(!anyNA(datasetComplete))
   assertthat::assert_that(
     all(vapply(datasetComplete
@@ -85,7 +86,7 @@ forest_impute <- function(dataset
     )
   assertthat::assert_that(!anyNA(datasetMissingBoolean))
   assertthat::assert_that(unique(sapply(datasetMissingBoolean, class)) == "logical")
-  assertthat::assert_that(colnames(datasetComplete) == colnames(datasetMissingBoolean))
+  assertthat::assert_that(all.equal(colnames(datasetComplete), colnames(datasetMissingBoolean)))
 
   if(!is.null(object)){
     objectValid <- c("ranger", "randomForest")

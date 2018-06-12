@@ -4,7 +4,20 @@
 \alias{dist_extract}
 \title{dist_extract}
 \usage{
-dist_extract(x, i, j)
+dist_extract(object, i, j, product = "inner")
+}
+\arguments{
+\item{object}{distance object}
+
+\item{i}{index}
+
+\item{j}{index}
+
+\item{product}{(string) product type. One among: 'inner', 'outer'.}
+}
+\value{
+A vector of distances when 'inner' is used. A matrix of distances
+  when 'outer' is used.
 }
 \description{
 dist_extract

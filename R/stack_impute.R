@@ -1,6 +1,15 @@
+# TODO all
+
 #' @name impute_stack
 #' @title impute_stack
 #' @description impute_stack
+#' @param dataset dataset
+#' @param newdata newdata
+#' @param method One among: 'mf', 'proximity'
+#' @param seed seed
+#' @param ... dotdotdot
+#' @return completed dataset
+#' @export
 
 impute_stack <- function(dataset
                          , newdata
@@ -28,12 +37,12 @@ impute_stack <- function(dataset
                  )
              )
 
-  resNewdata <- tail(res, nrow(newdata))
+  resNewdata <- utils::tail(res, nrow(newdata))
   return(resNewdata)
   }
 
   if(method == "proximity"){
-  res <- do.call(unsupervised_impute_proximity
+  res <- do.call(
              , c(list(dataset = rbind(dataset, newdata)
                       , seed  = seed
                       )
@@ -41,7 +50,7 @@ impute_stack <- function(dataset
                  )
              )
 
-  resNewdata <- tail(res[["data"]], nrow(newdata))
+  resNewdata <- utils::tail(res[["data"]], nrow(newdata))
   return(resNewdata)
   }
 }

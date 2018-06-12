@@ -2,8 +2,21 @@
 % Please edit documentation in R/dist.R
 \name{proximity}
 \alias{proximity}
+\alias{similarity}
 \title{Proximity matrix from unsupervised random forest.}
 \usage{
 proximity(dataset, method = "synthetic", predictMethod = "terminalNodes",
   prop = TRUE)
+}
+\arguments{
+\item{dataset}{A dataframe}
+
+\item{method}{(string) See 'method' in synthetic_forest}
+
+\item{predictMethod}{See 'method' in forage}
+
+\item{prop}{(flag) See 'prop' in synthetic_forest}
+}
+\description{
+Proximity matrix from unsupervised random forest.
 }

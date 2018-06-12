@@ -2,9 +2,20 @@
 % Please edit documentation in R/dist.R
 \name{dist}
 \alias{dist}
-\alias{dissimilarity}
-\title{Dsitance matrix from unsupervised random forest.}
+\title{Distance matrix from unsupervised random forest.}
 \usage{
-dissimilarity(dataset, method = "synthetic",
-  predictMethod = "terminalNodes", prop = TRUE)
+dist(dataset, method = "synthetic", prop = TRUE,
+  predictMethod = "terminalNodes")
+}
+\arguments{
+\item{dataset}{A dataframe}
+
+\item{method}{(string) See 'method' in synthetic_forest}
+
+\item{prop}{(flag) See 'prop' in synthetic_forest}
+
+\item{predictMethod}{See 'method' in forage}
+}
+\description{
+Distance matrix from unsupervised random forest.
 }

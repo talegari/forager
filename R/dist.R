@@ -1,29 +1,39 @@
 #' @name dist
-#' @title Dsitance matrix from unsupervised random forest.
+#' @title Distance matrix from unsupervised random forest.
+#' @description Distance matrix from unsupervised random forest.
+#' @param dataset A dataframe
+#' @param method (string) See 'method' in synthetic_forest
+#' @param prop (flag) See 'prop' in synthetic_forest
+#' @param predictMethod See 'method' in forage
 #' @export
-dissimilarity <- function(dataset
-                          , method        = "synthetic"
-                          , predictMethod = "terminalNodes"
-                          , prop          = TRUE
-                          ){
+dist <- function(dataset
+                 , method        = "synthetic"
+                 , prop          = TRUE
+                 , predictMethod = "terminalNodes"
+                 ){
 
-  model <- suppressMessages(
-    unsupervised(dataset  = dataset
-                 , method = method
-                 , prop   = prop
-                 )
-    )
-  distObject <- stats::predict(model
-                              , newdata = dataset
-                              , what    = "dissimilarity"
-                              , method  = predictMethod
-                              )
+  model <- synthetic_forest(dataset  = dataset
+                            , method = method
+                            , prop   = prop
+                            )
+
+  distObject <- forage(object = model
+                       , what = "dissimilarity"
+                       , method = predictMethod
+                       , context = "observations"
+                       )
 
   return( distObject )
 }
 
 #' @name proximity
+#' @aliases similarity
 #' @title Proximity matrix from unsupervised random forest.
+#' @description Proximity matrix from unsupervised random forest.
+#' @param dataset A dataframe
+#' @param method (string) See 'method' in synthetic_forest
+#' @param prop (flag) See 'prop' in synthetic_forest
+#' @param predictMethod See 'method' in forage
 #' @export
 proximity <- function(dataset
                       , method        = "synthetic"
@@ -31,19 +41,18 @@ proximity <- function(dataset
                       , prop          = TRUE
                       ){
 
-  model <- suppressMessages(
-    unsupervised(dataset      = dataset
-                 , method     = method
-                 , prop       = prop
-                 )
-    )
-  similObject <- stats::predict(model
-                                , newdata = dataset
-                                , what    = "proximity"
-                                , method  = predictMethod
-                                )
+  model <- synthetic_forest(dataset  = dataset
+                            , method = method
+                            , prop   = prop
+                            )
 
-  return( similObject )
+  distObject <- forage(object = model
+                       , what = "proximity"
+                       , method = predictMethod
+                       , context = "observations"
+                       )
+
+  return( distObject )
 }
 
 similarity <- proximity

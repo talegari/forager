@@ -1,36 +1,41 @@
 #' @name synthetic_forest
-#' @title Grow a random forest (or extratrees) on synthetic data.
+#' @title Grow a tree ensemble like bagged trees, random forest or extratrees on
+#'   synthetic data.
 #' @description Builds a random forest model to classify actual vs synthetic
 #'   data where synthetic data is created by sampling each covariate as
 #'   suggested in
-#'   \link[=https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf]{Understaning
+#'   \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understaning
 #'    random forests} by Brieman.
 #'
 #' @param dataset (object of class 'data.frame') A dataframe
 #' @param prop (flag) Random sampling of covariates (when prop = TRUE) to
 #'   generate synthetic data. Else, uniform sampling is used.
 #' @param seed (a positive integer) Seed for sampling.
+#' @param implementation (string) Implemenation to use to build the model. The
+#'   following areb supported: 'ranger', 'randomForest'.
 #' @param ... Arguments to be passed to \code{\link[ranger]{ranger}}.
 #' @return A random forest model of class 'ranger'.
 #' @details
-#' \link[=https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf]{Understaning
+#' \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understanding
 #' random forests} by Brieman involves creating synthetic data by sampling
 #' randomly from unvariate distributions of each covariate(feature). This
 #' supports two methods: First, where proportions or distribution is taken into
 #' account when sampling at random, second where the data is sampled assuming
 #' uniform distribution. The former corresponds to "Addcl1" from Horvath's
-#' \link[=https://doi.org/10.1198/106186006X94072]{paper} and latter corresponds
+#' \href{https://doi.org/10.1198/106186006X94072}{paper} and latter corresponds
 #' to "addc2". A random forest model is built using \pkg{ranger} to learn what
 #' separates the actual data from the synthetic data. Default value of number of
 #' trees grown is 1000 and  minimum terminal node size is set to 5.
 #' @references \itemize{
 #'
-#' \item \link[=https://doi.org/10.1198/106186006X94072]{Unsupervised Learning
-#' With Random Forest Predictors} by Tao Shi & Steve Horvath.
+#'   \item \href{https://doi.org/10.1198/106186006X94072}{Unsupervised Learning
+#'   With Random Forest Predictors} by Tao Shi & Steve Horvath.
 #'
-#' \item
-#' \link[=https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf]{Understaning
-#' random forests} by Brieman. }
+#'   \item
+#'   \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understanding
+#'   random forests} by Brieman.
+#'
+#'   }
 #' @examples
 #'
 #' # ranger

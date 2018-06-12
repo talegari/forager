@@ -1,31 +1,56 @@
+subset_dist <- utils::getFromNamespace("subset.dist", "proxy")
+
+#' @name distExtractPair
+#' @title distExtractPair
+#' @description distExtractPair
+#' @param object distance object
+#' @param index1 index
+#' @param index2 index
+#' @return (A number) Distance between index1 and index2.
+distExtractPair <- function(object, index1, index2){
+  dplyr::if_else(index1 == index2
+                 , 0
+                 , subset_dist(object, c(index1, index2))[1]
+                 )
+}
+
 #' @name dist_extract
 #' @title dist_extract
 #' @description dist_extract
+#' @param object distance object
+#' @param i index
+#' @param j index
+#' @param product (string) product type. One among: 'inner', 'outer'.
+#' @return A vector of distances when 'inner' is used. A matrix of distances
+#'   when 'outer' is used.
+dist_extract <- function(object
+                         , i
+                         , j
+                         , product = "inner"
+                         ){
 
-dist_extract <- function(x, i, j){
-
-  assertthat::assert_that(inherits(x, "dist"))
-  n <- attr(x, "Size")
-  assertthat::assert_that(length(i) == 1L && assertthat::is.count(i) && i <= n)
-
-  d <- function(i, j){
-    if(i == j){
-      return(0)
-    } else {
-      return( x[n*(i-1) - i*(i-1)/2 + j-i] ) # where i < j <= n
-    }
-  }
-
-  if(!missing(j)){
-    assertthat::assert_that(length(j) == 1L && assertthat::is.count(j) && j <= n)
-
-    if(i > j){
-      return(d(j, i))
-    } else {
-      return(d(i, j))
-    }
-
+  size <- attr(object, "Size")
+  assertthat::assert_that(all(sapply(i, assertthat::is.count)))
+  assertthat::assert_that(!any(i > size))
+  if(missing(j)){
+    j <- 1:size
   } else {
-    return(Vectorize(d, "j", SIMPLIFY = TRUE)(i, 1:n))
+    assertthat::assert_that(all(sapply(j, assertthat::is.count)))
+    assertthat::assert_that(!any(j > size))
   }
+  assertthat::assert_that(assertthat::is.string(product) &&
+                            product %in% c("inner", "outer")
+                          )
+  pair <- function(x, y) distExtractPair(object, x, y)
+
+  if(product == "inner"){
+    out <- sapply(i, j, pair)
+  } else { # outer case
+    out <- outer(i, j, Vectorize(pair, vectorize.args = c("x", "y")))
+  }
+
+  return(out)
 }
+
+
+

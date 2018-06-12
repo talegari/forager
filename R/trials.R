@@ -13,11 +13,12 @@
 # di2 <- forage(model_randomForest, newdata = iris, what = "dissimilarity")
 #
 # to <- Rtsne::Rtsne(di, is_distance = TRUE)
-# library("ggplot2")
 # to$Y %>% as.data.frame() %>%
-#   ggplot(aes(V1, V2, color = iris$Species)) +
-#   geom_point()
-# hclust(di, method = "single") %>% plot()
+#   ggplot2::ggplot(ggplot2::aes(V1, V2, color = iris$Species)) +
+#   ggplot2::geom_point()
+#
+# hclust(di, method = "average") %>% cutree(k = 3) %>% table(unclass(iris$Species))
+# hclust(di2, method = "average") %>% cutree(k = 3) %>% table(unclass(iris$Species))
 #
 # pr  <- forage(model_ranger, newdata = iris[,1:4], what = "proximity")
 # pr2 <- forage(model_randomForest, newdata = iris, what = "proximity")
@@ -35,9 +36,9 @@
 #
 # to$Y %>% as.data.frame() %>%
 #   dplyr::mutate(label = lab) %>%
-#   ggplot(aes(V1, V2, color = iris$Species)) +
-#   geom_point() +
-#   geom_label(aes(label = label))
+#   ggplot2::ggplot(ggplot2::aes(V1, V2, color = iris$Species)) +
+#   ggplot2::geom_point() +
+#   ggplot2::geom_label(ggplot2::aes(label = label))
 #
 # de <- forage(model_ranger, newdata = iris[, 1:4], what = "depth")
 # de2 <- forage(iris_model2, newdata = iris[, 1:4], what = "depth")
@@ -48,10 +49,9 @@
 #
 # hclust(dt) %>% plot()
 # to <- Rtsne::Rtsne(dt, is_distance = TRUE, perplexity = 3)
-# library("ggplot2")
 # to$Y %>% as.data.frame() %>%
-#   ggplot(aes(V1, V2)) +
-#   geom_point()
+#   ggplot2::ggplot(ggplot2::aes(V1, V2)) +
+#   ggplot2::geom_point()
 #
 # iris_with_na <- missRanger::generateNA(iris, 0.2)
 # iris_complete <- randomForest::na.roughfix(iris_with_na)

@@ -1,4 +1,8 @@
-#' depth_from_randomForest
+#' @name depth_from_ranger
+#' @title depth_from_ranger
+#' @description depth_from_ranger
+#' @param treelike a treelike structure
+
 depth_from_ranger <- function(treelike){
 
   data.table::setDT(treelike)
@@ -10,6 +14,7 @@ depth_from_ranger <- function(treelike){
                                 , id.vars      = "nodeID"
                                 , measure.vars = c("leftChild", "rightChild")
                                 )
+  value       <- NULL
   edgeMat     <- as.matrix(melted[!is.na(value), c("nodeID", "value")]) + 1L
   treegraph   <- igraph::graph_from_edgelist(edgeMat)
   depths      <- igraph::distances(treegraph, v = 1, mode = "out")
@@ -17,7 +22,11 @@ depth_from_ranger <- function(treelike){
   return(depths)
 }
 
-#' depth_from_randomForest
+#' @name depth_from_randomForest
+#' @title depth_from_randomForest
+#' @description depth_from_randomForest
+#' @param treelike a treelike structure
+
 depth_from_randomForest <- function(treelike){
 
   data.table::setDT(treelike)
@@ -36,9 +45,88 @@ depth_from_randomForest <- function(treelike){
                                 , id.vars      = "nodeID"
                                 , measure.vars = c("leftChild", "rightChild")
                                 )
+  value       <- NULL
   edgeMat     <- as.matrix(melted[!is.na(value), c("nodeID", "value")])
   treegraph   <- igraph::graph_from_edgelist(edgeMat)
   depths      <- igraph::distances(treegraph, v = 1, mode = "out")
   dim(depths) <- NULL
   return(depths)
+}
+
+#' @name predict_depth_observations.ranger
+#' @title predict_depth_observations.ranger
+#' @description predict_depth_observations.ranger
+#' @param object A tree ensemble model
+#' @param data data
+#' @param parallel (flag) Whether to use multicore parallel processing on
+#'   unix-alike systems.
+predict_depth_observations.ranger <- function(object
+                                              , data
+                                              , parallel = TRUE
+                                              ){
+
+  tnm <- predict_terminalNodesMatrix_terminalNodes(object, data)
+
+  if(.Platform$OS.type == "unix" && parallel){
+    outList     <- parallel::mclapply(
+      1:ncol(tnm)
+      , function(x) depth_from_ranger(ranger::treeInfo(object, x))[tnm[, x] + 1L]
+      , mc.cores = parallel::detectCores()
+      )
+  } else {
+    outList     <- lapply(
+      1:ncol(tnm)
+      , function(x) depth_from_ranger(ranger::treeInfo(object, x))[tnm[, x] + 1L]
+      )
+  }
+
+  outMat      <- unlist(outList)
+  dim(outMat) <- dim(tnm)
+  return(outMat)
+}
+
+#' @name predict_depth_observations.randomForest
+#' @title predict_depth_observations.randomForest
+#' @description predict_depth_observations.randomForest
+#' @param object A tree ensemble model
+#' @param data data
+#' @param parallel (flag) Whether to use multicore parallel processing on
+#'   unix-alike systems.
+predict_depth_observations.randomForest <- function(object
+                                                    , data
+                                                    , parallel = TRUE
+                                                    ){
+
+  tnm <- predict_terminalNodesMatrix_terminalNodes(object, data)
+
+  if(.Platform$OS.type == "unix" && parallel){
+    outList     <- parallel::mclapply(
+      1:ncol(tnm)
+      , function(x) depth_from_randomForest(randomForest::getTree(object, x, labelVar = TRUE))[tnm[, x]]
+      , mc.cores = parallel::detectCores()
+      )
+  } else {
+    outList     <- lapply(
+      1:ncol(tnm)
+      , function(x) depth_from_randomForest(randomForest::getTree(object, x, labelVar = TRUE))[tnm[, x]]
+      )
+  }
+
+  outMat      <- unlist(outList)
+  dim(outMat) <- dim(tnm)
+  return(outMat)
+}
+
+#' @name predict_depth_observations
+#' @title predict_depth_observations
+#' @description predict_depth_observations
+#' @param object A tree ensemble model
+#' @param data data
+#' @param parallel (flag) Whether to use multicore parallel processing on
+#'   unix-alike systems.
+predict_depth_observations <- function(object
+                                       , data
+                                       , parallel = TRUE
+                                       ){
+  UseMethod("predict_depth_observations", object)
 }
