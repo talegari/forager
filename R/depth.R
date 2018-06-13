@@ -58,20 +58,21 @@ depth_from_randomForest <- function(treelike){
 #' @description predict_depth_observations.ranger
 #' @param object A tree ensemble model
 #' @param data data
-#' @param parallel (flag) Whether to use multicore parallel processing on
-#'   unix-alike systems.
+#' @param nproc number of cores to use for parallel processing
 predict_depth_observations.ranger <- function(object
                                               , data
-                                              , parallel = TRUE
+                                              , nproc = 1
                                               ){
 
+  assertthat::assert_that(assertthat::is.count(nproc))
   tnm <- predict_terminalNodesMatrix_terminalNodes(object, data)
 
-  if(.Platform$OS.type == "unix" && parallel){
+  nproc <- max(1, min(nproc, parallel::detectCores() - 1))
+  if(.Platform$OS.type == "unix" && nproc > 1){
     outList     <- parallel::mclapply(
       1:ncol(tnm)
       , function(x) depth_from_ranger(ranger::treeInfo(object, x))[tnm[, x] + 1L]
-      , mc.cores = parallel::detectCores()
+      , mc.cores = nproc
       )
   } else {
     outList     <- lapply(
@@ -90,20 +91,22 @@ predict_depth_observations.ranger <- function(object
 #' @description predict_depth_observations.randomForest
 #' @param object A tree ensemble model
 #' @param data data
-#' @param parallel (flag) Whether to use multicore parallel processing on
-#'   unix-alike systems.
+#' @param nproc number of cores to use for parallel processing
 predict_depth_observations.randomForest <- function(object
                                                     , data
-                                                    , parallel = TRUE
+                                                    , nproc = 1
                                                     ){
 
+  assertthat::assert_that(assertthat::is.count(nproc))
   tnm <- predict_terminalNodesMatrix_terminalNodes(object, data)
 
-  if(.Platform$OS.type == "unix" && parallel){
+  nproc <- max(1, min(nproc, parallel::detectCores() - 1))
+
+  if(.Platform$OS.type == "unix" && nproc > 1){
     outList     <- parallel::mclapply(
       1:ncol(tnm)
       , function(x) depth_from_randomForest(randomForest::getTree(object, x, labelVar = TRUE))[tnm[, x]]
-      , mc.cores = parallel::detectCores()
+      , mc.cores = nproc
       )
   } else {
     outList     <- lapply(

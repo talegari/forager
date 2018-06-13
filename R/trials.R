@@ -6,12 +6,13 @@
 # summary(model_randomForest)
 # mean(model_randomForest$err.rate[,1]) # OOB prediction error
 #
-# tn <- forage(model_ranger, newdata = iris, what = "terminalNodesMatrix")
+# tn  <- forage(model_ranger      , newdata = iris, what = "terminalNodesMatrix")
 # tn2 <- forage(model_randomForest, newdata = iris, what = "terminalNodesMatrix")
 #
 # di  <- forage(model_ranger, newdata = iris[,1:4], what = "dissimilarity")
 # di2 <- forage(model_randomForest, newdata = iris, what = "dissimilarity")
 #
+# set.seed(1)
 # to <- Rtsne::Rtsne(di, is_distance = TRUE)
 # to$Y %>% as.data.frame() %>%
 #   ggplot2::ggplot(ggplot2::aes(V1, V2, color = iris$Species)) +
@@ -53,15 +54,27 @@
 #   ggplot2::ggplot(ggplot2::aes(V1, V2)) +
 #   ggplot2::geom_point()
 #
-# iris_with_na <- missRanger::generateNA(iris, 0.2)
+# iris_with_na <- missRanger::generateNA(iris, 0.6)
 # iris_complete <- randomForest::na.roughfix(iris_with_na)
 # iris_missing <- is.na(iris_with_na) %>% as.data.frame()
 #
-# imp1 <- forest_impute(list(iris_complete, iris_missing))
+# aforest <- ranger::ranger(Species ~., data = iris)
+#
+# imp1 <- forest_impute(list(iris_complete, iris_missing), object = aforest)
 # imp1
 #
-# Map(metric_relative, iris_complete, iris, iris_missing) %>% unlist()
-# Map(metric_relative, imp1$data, iris, iris_missing) %>% unlist()
+# compare_roughimpute_with_actual <- Map(metric_relative, iris_complete, iris, iris_missing) %>% unlist()
+# compare_roughimpute_with_actual
+# compare_forest_impute_with_actual <- Map(metric_relative, imp1$data, iris, iris_missing) %>% unlist()
+# compare_forest_impute_with_actual
+#
+# perf <- data.frame(
+#   colnames = names(compare_forest_impute_with_actual)
+#   , rough = compare_roughimpute_with_actual
+#   , forest = compare_forest_impute_with_actual
+#   )
+# rownames(perf) <- NULL
+# perf
 #
 # imp2 <- forest_impute(list(iris_complete, iris_missing), object = model_ranger)
 # Map(metric_relative, imp2$data, iris, iris_missing) %>% unlist()

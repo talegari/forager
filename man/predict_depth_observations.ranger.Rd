@@ -4,15 +4,14 @@
 \alias{predict_depth_observations.ranger}
 \title{predict_depth_observations.ranger}
 \usage{
-\method{predict_depth_observations}{ranger}(object, data, parallel = TRUE)
+\method{predict_depth_observations}{ranger}(object, data, nproc = 1)
 }
 \arguments{
 \item{object}{A tree ensemble model}
 
 \item{data}{data}
 
-\item{parallel}{(flag) Whether to use multicore parallel processing on
-unix-alike systems.}
+\item{nproc}{number of cores to use for parallel processing}
 }
 \description{
 predict_depth_observations.ranger

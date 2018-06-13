@@ -66,9 +66,11 @@ predict_proximity_observations_terminalNodes <- function(object, newdata){
 predict_proximity_trees_terminalNodes <- function(object, newdata){
 
   terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
-  similObject         <- proxy::simil(t(terminalNodesMatrix)
-                                      , method = function(x, y) mean(x == y)
-                                      )
+  similObject         <-
+    proxy::simil(terminalNodesMatrix
+                , method = function(x, y) fossil::rand.index(x, y)
+                , by_rows = FALSE
+                )
 
   return( similObject )
 }
@@ -82,8 +84,9 @@ predict_dissimilarity_trees_terminalNodes <- function(object, newdata){
 
   terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
   distObject         <- proxy::dist(
-    t(terminalNodesMatrix)
-    , method = function(x, y) sqrt(1 - mean(x == y))
+    terminalNodesMatrix
+    , method = function(x, y) 1 - fossil::rand.index(x, y)
+    , by_rows = FALSE
     )
 
   return( distObject )
@@ -101,11 +104,11 @@ predict_outlyingness_observations_terminalNodes <- function(object
                                                             ){
 
   similObject <- predict_proximity_observations_terminalNodes(object, newdata)
-  subset.dist <- utils::getFromNamespace("subset.dist", "proxy")
+  subset_dist <- utils::getFromNamespace("subset.dist", "proxy")
 
   classwiseOut <- function(aClass){
     classIndex <- which(classes == aClass)
-    classSimil <- (as.matrix(subset.dist(similObject, classIndex)))^2
+    classSimil <- (as.matrix(subset_dist(similObject, classIndex)))^2
     return( data.table::data.table(index = classIndex
                                    , outlyingness = 1/colSums(classSimil)
                                    )

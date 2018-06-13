@@ -2,20 +2,33 @@
 % Please edit documentation in R/dist.R
 \name{dist}
 \alias{dist}
-\title{Distance matrix from unsupervised random forest.}
+\title{Distance matrix from unsupervised tree ensemble}
 \usage{
-dist(dataset, method = "synthetic", prop = TRUE,
-  predictMethod = "terminalNodes")
+dist(dataset, method = "synthetic", predictMethod = "terminalNodes", ...)
 }
 \arguments{
 \item{dataset}{A dataframe}
 
-\item{method}{(string) See 'method' in synthetic_forest}
+\item{method}{(string) Method to build the tree ensemble. These are
+supported: 'synthetic'}
 
-\item{prop}{(flag) See 'prop' in synthetic_forest}
+\item{predictMethod}{Method to predict. These are supported: 'terminalNodes'}
 
-\item{predictMethod}{See 'method' in forage}
+\item{...}{Arguments for the tree ensembler}
+}
+\value{
+A object of class 'dist'
 }
 \description{
-Distance matrix from unsupervised random forest.
+Compute 'dist' object from unsupervised tree ensemble
+}
+\details{
+If method is 'synthetic', a tree ensemble is grown to seperate
+  actual data from synthetic data using 'synthetic_forest' function. If
+  predictMethod is 'terminalNodes', distance matrix is computed from
+  cooccurance in terminal nodes using 'forage' function.
+}
+\examples{
+dm <- dist(iris[, 1:4])
+attr(dm, "Size")
 }

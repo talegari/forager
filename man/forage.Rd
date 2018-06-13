@@ -2,25 +2,25 @@
 % Please edit documentation in R/forage.R
 \name{forage}
 \alias{forage}
-\title{Obtain various outputs using a trained tree ensembles on new data.}
+\title{Obtain various outputs using a trained tree ensemble on new data}
 \usage{
 forage(object, newdata, what = "dissimilarity", method = "terminalNodes",
   context = "observations", classes = NULL, ...)
 }
 \arguments{
-\item{object}{Object of class 'ranger' and 'randomForest'.}
+\item{object}{Object of class 'ranger', 'randomForest'}
 
-\item{newdata}{(object inheriting 'data.frame' class) A dataframe.}
+\item{newdata}{A dataframe}
 
 \item{what}{(string) Type of output. Following are implemented:
 terminalNodesMatrix, dissimilarity, proximity, outlyingness, depth. Default
-is 'dissimilarity'.}
+is 'dissimilarity'}
 
 \item{method}{(string) Method to obtain the output. Following are
-implemented: terminalNodes. Default is 'terminalNodes'.}
+implemented: terminalNodes. Default is 'terminalNodes'}
 
 \item{context}{(string) Specify whether output should be computed for
-'observations' or 'trees'.}
+'observations' or 'trees'. Default is 'observations'}
 
 \item{classes}{(factor) Required when 'what' is 'outlyingness'}
 
@@ -51,10 +51,25 @@ The following are returned depending on 'what':
 }
 \description{
 Obtain terminalNodesMatrix, dissimilarity, proximity,
-  outlyingness on new data using a tree ensemble. Currently, ensembles from
-  'ranger' and 'randomForest' packages are supported. See details for the
-  explanation about various outputs.
+  outlyingness, depth on new data using a tree ensemble. Currently, ensembles
+  from 'ranger' and 'randomForest' packages are supported. See details for
+  the explanation about various outputs.
 }
 \details{
-TODO
+\itemize{
+
+  \item For 'terminalNodes' method, proximity between two observations is
+  defined as the propotion of trees in which both observations end up in the
+  same terminal node. Similarly, proximity between two trees is defined as
+  the rand index of the terminalnode vectors of the trees for all
+  observations.
+
+  \item Dissimilarity is defined as sqrt of (1 - proximity) in case of
+  observations and (1 - proximity) in the case of trees.
+
+  \item When a vector of classes is given, outlyingness of a observation from
+  its class is defined as the reciprocal sum of squared proximities of the
+  observations of the class.
+
+  }
 }

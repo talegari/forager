@@ -1,7 +1,5 @@
-# TODO all
-
 #' @name impute_stack
-#' @title impute_stack
+#' @title Unsupervised imputation by stacking complete and incomplete data
 #' @description impute_stack
 #' @param dataset dataset
 #' @param newdata newdata
@@ -13,23 +11,23 @@
 
 impute_stack <- function(dataset
                          , newdata
-                         , method = "mf"
+                         , method = "missforest"
                          , seed   = 1L
                          , ...
                          ){
 
   if(anyNA(dataset)){
-  stop("dataset cannot contain NA.")
+  stop("dataset cannot contain NA")
   }
 
   if(!anyNA(newdata)){
-  message("No NA to impute. Input dataset is returned asis.")
-  return(newdata)
+    message("Data is not missing in newdata. Input dataset is returned asis")
+    return(newdata)
   }
 
-  if(method == "mf"){
+  if(method == "missforest"){
   res <- do.call(missRanger::missRanger
-             , c(list(data      = rbind(dataset, newdata)
+             , c(list(data      = rbind(newdata, dataset)
                       , seed    = seed
                       , verbose = 0
                       )
@@ -37,20 +35,20 @@ impute_stack <- function(dataset
                  )
              )
 
-  resNewdata <- utils::tail(res, nrow(newdata))
+  resNewdata <- resNewdata[1:nrow(newdata), ]
   return(resNewdata)
   }
 
   if(method == "proximity"){
-  res <- do.call(
-             , c(list(dataset = rbind(dataset, newdata)
-                      , seed  = seed
-                      )
-                 , ...
-                 )
-             )
+  res <- do.call(forest_impute
+                 , c(list(dataset = rbind(newdata, dataset)
+                          , seed  = seed
+                          )
+                     , ...
+                     )
+                )
 
-  resNewdata <- utils::tail(res[["data"]], nrow(newdata))
+  resNewdata <- resNewdata[1:nrow(newdata), ]
   return(resNewdata)
   }
 }

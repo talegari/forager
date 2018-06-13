@@ -2,9 +2,9 @@
 % Please edit documentation in R/stack_impute.R
 \name{impute_stack}
 \alias{impute_stack}
-\title{impute_stack}
+\title{Unsupervised imputation by stacking complete and incomplete data}
 \usage{
-impute_stack(dataset, newdata, method = "mf", seed = 1L, ...)
+impute_stack(dataset, newdata, method = "missforest", seed = 1L, ...)
 }
 \arguments{
 \item{dataset}{dataset}

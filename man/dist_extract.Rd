@@ -2,7 +2,7 @@
 % Please edit documentation in R/dist_extract.R
 \name{dist_extract}
 \alias{dist_extract}
-\title{dist_extract}
+\title{Extract distances between specified indexes from a 'dist' object}
 \usage{
 dist_extract(object, i, j, product = "inner")
 }
@@ -11,7 +11,7 @@ dist_extract(object, i, j, product = "inner")
 
 \item{i}{index}
 
-\item{j}{index}
+\item{j}{index. If missing, this defaults to 1:size of the dist object}
 
 \item{product}{(string) product type. One among: 'inner', 'outer'.}
 }
@@ -20,5 +20,16 @@ A vector of distances when 'inner' is used. A matrix of distances
   when 'outer' is used.
 }
 \description{
-dist_extract
+Extract distances as a vector when product is inner and as a
+  matrix when the product is outer
+}
+\details{
+When j is missing, it defaults to 1:size of the dist object. When
+  the product is inner and lengths of i and j mismatch, the smaller one is
+  extended to the size of the onger one.
+}
+\examples{
+temp <- stats::dist(datasets::mtcars)
+dist_extract(temp, 1:2, 3:5, "inner")
+dist_extract(temp, 1:2, 3:5, "outer")
 }

@@ -3,20 +3,34 @@
 \name{proximity}
 \alias{proximity}
 \alias{similarity}
-\title{Proximity matrix from unsupervised random forest.}
+\title{Proximity matrix from unsupervised tree ensemble}
 \usage{
 proximity(dataset, method = "synthetic", predictMethod = "terminalNodes",
-  prop = TRUE)
+  ...)
 }
 \arguments{
 \item{dataset}{A dataframe}
 
-\item{method}{(string) See 'method' in synthetic_forest}
+\item{method}{(string) Method to build the tree ensemble. These are
+supported: 'synthetic'}
 
-\item{predictMethod}{See 'method' in forage}
+\item{predictMethod}{Method to predict. These are supported: 'terminalNodes'}
 
-\item{prop}{(flag) See 'prop' in synthetic_forest}
+\item{...}{Arguments for the tree ensembler}
+}
+\value{
+A object of class 'dist/simil'
 }
 \description{
-Proximity matrix from unsupervised random forest.
+Compute 'dist/simil' object from unsupervised tree ensemble
+}
+\details{
+If method is 'synthetic', a tree ensemble is grown to seperate
+  actual data from synthetic data using 'synthetic_forest' function. If
+  predictMethod is 'terminalNodes', similarity matrix is computed from
+  cooccurance in terminal nodes using 'forage' function.
+}
+\examples{
+dm <- proximity(iris[, 1:4])
+attr(dm, "Size")
 }

@@ -1,23 +1,33 @@
 #' @name dist
-#' @title Distance matrix from unsupervised random forest.
-#' @description Distance matrix from unsupervised random forest.
+#' @title Distance matrix from unsupervised tree ensemble
+#' @description Compute 'dist' object from unsupervised tree ensemble
 #' @param dataset A dataframe
-#' @param method (string) See 'method' in synthetic_forest
-#' @param prop (flag) See 'prop' in synthetic_forest
-#' @param predictMethod See 'method' in forage
+#' @param method (string) Method to build the tree ensemble. These are
+#'   supported: 'synthetic'
+#' @param predictMethod Method to predict. These are supported: 'terminalNodes'
+#' @param ... Arguments for the tree ensembler
+#' @return A object of class 'dist'
+#' @details If method is 'synthetic', a tree ensemble is grown to seperate
+#'   actual data from synthetic data using 'synthetic_forest' function. If
+#'   predictMethod is 'terminalNodes', distance matrix is computed from
+#'   cooccurance in terminal nodes using 'forage' function.
+#' @examples
+#' dm <- dist(iris[, 1:4])
+#' attr(dm, "Size")
 #' @export
 dist <- function(dataset
                  , method        = "synthetic"
-                 , prop          = TRUE
                  , predictMethod = "terminalNodes"
+                 , ...
                  ){
+  arguments <-  list(...)
 
-  model <- synthetic_forest(dataset  = dataset
-                            , method = method
-                            , prop   = prop
-                            )
+  if(method == "synthetic"){
+    model <- do.call(synthetic_forest, c(list(dataset = dataset), arguments))
+  }
 
   distObject <- forage(object = model
+                       , newdata = dataset
                        , what = "dissimilarity"
                        , method = predictMethod
                        , context = "observations"
@@ -28,25 +38,35 @@ dist <- function(dataset
 
 #' @name proximity
 #' @aliases similarity
-#' @title Proximity matrix from unsupervised random forest.
-#' @description Proximity matrix from unsupervised random forest.
+#' @title Proximity matrix from unsupervised tree ensemble
+#' @description Compute 'dist/simil' object from unsupervised tree ensemble
 #' @param dataset A dataframe
-#' @param method (string) See 'method' in synthetic_forest
-#' @param prop (flag) See 'prop' in synthetic_forest
-#' @param predictMethod See 'method' in forage
+#' @param method (string) Method to build the tree ensemble. These are
+#'   supported: 'synthetic'
+#' @param predictMethod Method to predict. These are supported: 'terminalNodes'
+#' @param ... Arguments for the tree ensembler
+#' @return A object of class 'dist/simil'
+#' @details If method is 'synthetic', a tree ensemble is grown to seperate
+#'   actual data from synthetic data using 'synthetic_forest' function. If
+#'   predictMethod is 'terminalNodes', similarity matrix is computed from
+#'   cooccurance in terminal nodes using 'forage' function.
+#' @examples
+#' dm <- proximity(iris[, 1:4])
+#' attr(dm, "Size")
 #' @export
 proximity <- function(dataset
                       , method        = "synthetic"
                       , predictMethod = "terminalNodes"
-                      , prop          = TRUE
+                      , ...
                       ){
+  arguments <-  list(...)
 
-  model <- synthetic_forest(dataset  = dataset
-                            , method = method
-                            , prop   = prop
-                            )
+  if(method == "synthetic"){
+    model <- do.call(synthetic_forest, c(list(dataset = dataset), arguments))
+  }
 
   distObject <- forage(object = model
+                       , newdata = dataset
                        , what = "proximity"
                        , method = predictMethod
                        , context = "observations"
