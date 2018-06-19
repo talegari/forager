@@ -1,28 +1,30 @@
 #' @name forest_rfe
-#' @title lightweight implementation of RFE using ranger random forest implementation
-#' @description Modifications to regular recursive feature elimination procedure:
-#' \itemize{
+#' @title lightweight implementation of RFE using ranger random forest
+#'   implementation
+#' @description Modifications to regular recursive feature elimination
+#'   procedure: \itemize{
 #'
-#' \item Use oob prediction error as a proxy to model performance
+#'   \item Use oob prediction error as a proxy to model performance
 #'
-#' \item Build forests on samples of data and average them
+#'   \item Build forests on samples of data and average variable importance and
+#'   oob prediction error
 #'
-#' }
+#'   }
 #' @param dataset (object inheriting data.frame class) A dataframe
 #' @param responseVarName (string) Name of the response variable
 #' @param sizes (integer vector) Vector of number of variables
-#' @param sampleprop (real number between 0 and 1) Proportion of observations per sample
+#' @param sampleprop (real number between 0 and 1) Proportion of observations
+#'   per sample
 #' @param nsamples (positive integer) Number of samples
 #' @param seed (positive integer) Seed
 #' @param ... Arguments to be passed to `ranger::ranger`
-#' @return A tibble with three columns:
-#' \itemize{
+#' @return A tibble with three columns: \itemize{
 #'
-#' \item size: Number of variables used
-#' \item ooberror: Out-of-box error of the forest
-#' \item varimp: A list-column where each item is a data.frame with variable names and importance
+#'   \item size: Number of variables used \item ooberror: Out-of-box error of
+#'   the forest \item varimp: A list-column where each item is a data.frame with
+#'   variable names and importance
 #'
-#' }
+#'   }
 #' @examples
 #' temp <- forest_rfe(iris, "Species")
 #' temp
@@ -66,6 +68,9 @@ forest_rfe <- function(dataset
   predictorNames <- setdiff(colnames(dataset), responseVarName)
   if(is.null(arguments[["importance"]])){
     arguments[["importance"]] <- "permutation"
+  }
+  if(is.null(arguments[["write.forest"]])){
+    arguments[["write.forest"]] <- FALSE
   }
   set.seed(seed)
   seeds <- sample.int(1e6, nsamples)
