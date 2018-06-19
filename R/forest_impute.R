@@ -1,9 +1,9 @@
 #' @name forest_impute
-#' @title Impute using a random forest (or extratrees) in un/supervised setting.
-#' @description In the unsupervised case, random forest models are built on the
-#'   imputed data (of the previous iteration) and used to impute data in the
-#'   iteration until a stopping criteria is reached. In the supervised case, one
-#'   random forest model is used to impute for every iteration. See details.
+#' @title Impute using a tree ensemble in un/supervised setting.
+#' @description In the unsupervised case, tree ensemble built on the imputed
+#'   data (of the previous iteration) and used to impute data until a stopping
+#'   criteria is reached. In the supervised case, trained tree ensemble is used
+#'   to impute for every iteration. See 'details'.
 #' @param dataset A list with two components:
 #'
 #'   \itemize{
@@ -16,13 +16,14 @@
 #'   column names should be identical to datasetComplete.
 #'
 #'   }
-#' @param object A randomForest/ranger model.
-#' @param method (string) A method to build the random forest model when object
-#'   is missing. Currently, only "synthetic" is implemented.
+#' @param object An object of class ranger or randomForest. If missing, the
+#'   imputation is done in unsupervised mode.
+#' @param method (string) A method to build the tree ensemble when object is
+#'   missing. Currently, only "synthetic" is implemented.
 #' @param predictMethod (string) Method to to compute the proximity matrix.
 #'   Currently, only "terminalNodes" is implemented.
-#' @param tol (number between 0 and 1) Threshold for the percentage change of
-#'   the metric_relative.
+#' @param tol (number between 0 and 1) Threshold for the change of the metric.
+#'   See 'details'.
 #' @param maxIter (positive integer) Maximum number of iterations.
 #' @param seed (positive integer) seed for growing a forest.
 #' @param ... Arguments to be passed to synthetic_forest in the unsupervised
@@ -35,39 +36,44 @@
 #'
 #'   \item iter: Number of iterations.
 #'
-#'   \item errors: A vector of metric_relative of the last iteration
-#'   corresponding to each covariate.
+#'   \item errors: A vector of metric of the last iteration corresponding to
+#'   each covariate.
 #'
 #'   }
 #' @details
 #'
-#' \itemize{ \item In the unsupervised case, when "synthetic" method is chosen,
-#' a random forest is grown to separate actual data from synthetic data. When
-#' the predictMethod is "terminalNodes", the proximity matrix is obtained using
-#' \code{\link{predict_proximity_observations_terminalNodes}}. In the supervised
-#' case, a random forest model is provided to the function.
+#' \itemize{
+#'
+#' \item In the unsupervised case, when "synthetic" method is chosen, a random
+#' forest is grown using 'datasetComplete' to separate actual data from
+#' synthetic data. When the predictMethod is "terminalNodes", the proximity
+#' matrix is computed.
 #'
 #' \item The missing data in each covariate is imputed by averaging non-missing
-#' values of the covariate where the weights are the proximities.
+#' values of the covariate where the weights are the proximities. This is the
+#' new 'datasetComplete'.
 #'
 #' \item This is repeated until maximum number of iterations specified by
-#' "maxiter" unless for consecutive iterations the percentage change in the
-#' metric_relative (RMSE for continuous data, Proportion of disagreements) for
-#' each covariate is less than a threshold ("tol").
+#' "maxiter" unless for consecutive iterations the change in the metric (MAPE
+#' for continuous data, Proportion of disagreements for factors) for each
+#' covariate is less than a threshold ("tol").
 #'
 #' }
 #' @seealso \code{\link[randomForest]{rfImpute}}
 #' @export
 
 forest_impute <- function(dataset
-                          , object        = NULL
-                          , method        = "synthetic"
-                          , predictMethod = "terminalNodes"
-                          , tol           = 0.05
-                          , maxIter       = 10L
-                          , seed          = 1L
+                          , responseVarName
+                          , method          = "synthetic"
+                          , predictMethod   = "terminalNodes"
+                          , implementation  = "ranger"
+                          , tol             = 0.05
+                          , maxIter         = 10L
+                          , seed            = 1L
+                          , nproc           = 1L
                           , ...
                           ){
+  # assertions ----
   arguments <- list(...)
 
   datasetComplete       <- dataset[[1]]
@@ -88,13 +94,19 @@ forest_impute <- function(dataset
   assertthat::assert_that(unique(sapply(datasetMissingBoolean, class)) == "logical")
   assertthat::assert_that(all.equal(colnames(datasetComplete), colnames(datasetMissingBoolean)))
 
-  if(!is.null(object)){
-    objectValid <- c("ranger", "randomForest")
-  assertthat::assert_that(any(inherits(object, objectValid))
-                          , msg = paste0("Objects with these classes are supported: "
-                                         , toString(objectValid)
-                                         )
-                          )
+  if(missing(responseVarName)){
+    imputationType <- "unsupervised"
+    assertthat::assert_that(method %in% c("synthetic"))
+  } else {
+    imputationType <- "supervised"
+    assertthat::assert_that(assertthat::is.string(responseVarName))
+    assertthat::assert_that(responseVarName %in% colnames(datasetComplete))
+    assertthat::assert_that(
+      inherits(datasetComplete[[responseVarName]]
+               , c("integer", "numeric", "factor")
+               )
+      , msg = "response has to be one of these types: integer, numeric, factor"
+      )
   }
 
   methodValid <- c("terminalNodes")
@@ -103,11 +115,28 @@ forest_impute <- function(dataset
                                         , toString(methodValid)
                                         )
                          )
+  assertthat::assert_that(assertthat::is.string(implementation))
+  implementation <- tolower(implementation)
+  implementationMethods <- c("ranger", "randomforest")
+  assertthat::assert_that(implementation %in% implementationMethods
+                         , msg = paste0("Following implementations are implemented: "
+                                        , toString(methodValid)
+                                        )
+                         )
   assertthat::assert_that(assertthat::is.number(tol))
   assertthat::assert_that(assertthat::is.count(maxIter) && maxIter >= 2)
   assertthat::assert_that(assertthat::is.count(seed))
+  assertthat::assert_that(assertthat::is.count(nproc))
 
-  if(is.null(object)){
+  # setup ----
+  nproc <- max(1, min(nproc, parallel::detectCores() - 1))
+
+  implementationFunction <- dplyr::case_when(
+    implementation   == "ranger" ~ ranger::ranger
+    , implementation == "randomforest" ~ randomForest::randomForest
+    )
+
+  if(imputationType == "unsupervised"){
     if(method == "synthetic"){
       trainFun <- synthetic_forest
     }
@@ -115,9 +144,19 @@ forest_impute <- function(dataset
       trainFun
       , c(list(dataset = datasetComplete, seed =  seed), arguments)
       )
+  } else {
+    object <- do.call(
+      implementationFunction
+      , c(list(dependent.variable.name  = responseVarName
+               , data = datasetComplete
+               , seed =  seed
+               )
+          , arguments
+          )
+      )
   }
 
-  # first iter
+  # first iter ----
   if(predictMethod == "terminalNodes"){
     predictFun <- predict_proximity_observations_terminalNodes
   }
@@ -157,7 +196,7 @@ forest_impute <- function(dataset
           classWeights <- tapply(proximities[!index]
                                  , imputed[!index]
                                  , sum
-                                 , simplify = FALSE
+                                 , simplify = TRUE
                                  )
           return(names(which.max(classWeights)))
         } else {
@@ -177,7 +216,20 @@ forest_impute <- function(dataset
     return(imputedRes)
   }
 
-  datasetCurrent <- lapply(1:ncol(datasetComplete), impute_column, datasetComplete)
+  if(.Platform$OS.type == "unix" && nproc > 1){
+    datasetCurrent <- parallel::mclapply(
+      1:ncol(datasetComplete)
+      , impute_column
+      , datasetComplete
+      , mc.cores = nproc
+      )
+  } else {
+    datasetCurrent <- lapply(1:ncol(datasetComplete)
+                             , impute_column
+                             , datasetComplete
+                             )
+  }
+
   data.table::setDF(datasetCurrent)
   data.table::setnames(datasetCurrent
                        , colnames(datasetCurrent)
@@ -187,15 +239,41 @@ forest_impute <- function(dataset
   # loop through imputing iterations ----
   for(i in 2:maxIter){
 
-    if(is.null(object)){
+    if(imputationType == "unsupervised"){
+      if(method == "synthetic"){
+        trainFun <- synthetic_forest
+      }
       object <- do.call(
         trainFun
-        , c(list(dataset = datasetCurrent, seed =  seed), arguments)
+        , c(list(dataset = datasetComplete, seed =  seed), arguments)
+        )
+    } else {
+      object <- do.call(
+        implementationFunction
+        , c(list(dependent.variable.name  = responseVarName
+                 , data = datasetComplete
+                 , seed =  seed
+                 )
+            , arguments
+            )
         )
     }
 
     dO             <- predictFun(object, newdata = datasetCurrent)
-    datasetImputed <- lapply(1:ncol(datasetComplete), impute_column, datasetCurrent)
+
+    if(.Platform$OS.type == "unix" && nproc > 1){
+      datasetImputed <- parallel::mclapply(
+        1:ncol(datasetComplete)
+        , impute_column
+        , datasetCurrent
+        , mc.cores = nproc
+        )
+    } else {
+      datasetImputed <- lapply(1:ncol(datasetComplete)
+                               , impute_column
+                               , datasetCurrent
+                               )
+    }
     data.table::setDF(datasetImputed)
 
     # check if iterations need a stop

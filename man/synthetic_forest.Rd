@@ -27,7 +27,7 @@ A tree ensemble with one these classes: 'ranger', 'randomForest'
 Builds a random forest model to classify actual vs synthetic
   data where synthetic data is created by sampling each covariate as
   suggested in
-  \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understaning
+  \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understanding
    random forests} by Brieman.
 }
 \details{

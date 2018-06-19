@@ -52,7 +52,122 @@
 #'   observations of the class.
 #'
 #'   }
+#' @examples
+#' library("magrittr")
+#' library("ggplot2")
 #'
+#' # partiton iris data ----
+#' set.seed(1)
+#' index      <- sample.int(nrow(iris), floor(0.7 * nrow(iris)))
+#' iris_train <- iris[index, ]
+#' iris_test  <- iris[-index, ]
+#'
+#' # grow a randomforest ensembles ----
+#' model_ranger_supervised <- ranger::ranger(Species ~., data = iris_train, seed = 1)
+#' model_ranger_supervised
+#'
+#' model_ranger_unsupervised <- synthetic_forest(iris_train)
+#' model_ranger_unsupervised$prediction.error
+#'
+#' # obtain terminal nodes matrix ----
+#' tn_supervised  <- forage(model_ranger_supervised
+#'                          , newdata = iris_test
+#'                          , what = "terminalNodesMatrix"
+#'                          )
+#' dim(tn_supervised)
+#'
+#' tn_unsupervised <- forage(model_ranger_unsupervised
+#'                           , newdata = iris_test
+#'                           , what = "terminalNodesMatrix"
+#'                           )
+#' dim(tn_unsupervised)
+#'
+#' # obtain similarity/distance between observations ----
+#' di_supervised  <- forage(model_ranger_supervised
+#'                          , newdata = iris_test
+#'                          , what  = "dissimilarity" # or "proximity"
+#'                          )
+#' di_supervised %>% attr("Size")
+#' di_supervised %>% as.matrix() %>% image()
+#'
+#' di_unsupervised  <- forage(model_ranger_unsupervised
+#'                            , newdata = iris_test
+#'                            , what  = "dissimilarity" # or "proximity"
+#'                            )
+#' di_unsupervised %>% attr("Size")
+#' di_unsupervised %>% as.matrix() %>% image()
+#'
+#' # clustering using hclust partitions by species
+#' hclust(di_unsupervised, method = "average") %>% cutree(k = 3) %>% table(unclass(iris_test$Species))
+#'
+#' # explore outliers in train data ----
+#' di_unsupervised_train  <- forage(model_ranger_unsupervised
+#'                                  , newdata = iris_train
+#'                                  , what  = "dissimilarity"
+#'                                  )
+#'
+#' outIndex <- forage(model_ranger_unsupervised
+#'                    , newdata = iris_train
+#'                    , what = "outlyingness"
+#'                    , classes = iris_train$Species
+#'                    )
+#'
+#' # quick and rough outlier exploration
+#' outs   <- outIndex %in% grDevices::boxplot.stats(outIndex)$out
+#' which(outs)
+#' labels <- (1:nrow(iris_train))
+#' labels[outs] <- NA
+#' set.seed(1)
+#' to <- Rtsne::Rtsne(di_unsupervised_train, is_distance = TRUE, perplexity = 10)
+#' to$Y %>% as.data.frame() %>%
+#'   ggplot(aes(V1, V2, color = iris_train$Species, size = as.integer(outs))) +
+#'   geom_point(alpha = 0.5) +
+#'   geom_label(aes(label = labels))
+#'
+#' # Look at the depth of the terminal nodes of the observations across trees
+#' depth_observations <- forage(synthetic_forest(iris_train, splitrule = "extratrees")
+#'                              , iris_train
+#'                              , what = "depth"
+#'                              )
+#' depth_observations_sweep <- sweep(depth_observations
+#'                                   , 2
+#'                                   , matrixStats::colMaxs(depth_observations)
+#'                                   , "/"
+#'                                   )
+#' avg_depth  <- matrixStats::rowMedians(depth_observations_sweep)
+#' depthframe <- data.frame(index = 1:nrow(iris_train), depthratio = avg_depth)
+#' averages   <- depthframe %>%
+#'   dplyr::mutate(Species = iris_train$Species) %>%
+#'   dplyr::group_by(Species) %>%
+#'   dplyr::summarise(mean = median(depthratio), sd = mad(depthratio))
+#'
+#' depthframe %>%
+#'   ggplot(aes(index, depthratio)) +
+#'   geom_point(aes(color = iris_train$Species)) +
+#'   geom_label(aes(label = 1:nrow(iris_train), color = iris_train$Species)) +
+#'   geom_hline(aes(yintercept = mean, colour = Species), averages) +
+#'   geom_hline(aes(yintercept = mean + 1.5 * sd, colour = Species), linetype = 2, averages) +
+#'   geom_hline(aes(yintercept = mean - 1.5 * sd, colour = Species), linetype = 2, averages) +
+#'   scale_x_continuous(breaks = seq(1, nrow(iris_train))) +
+#'   coord_flip()
+#' # we might want to examine points of a class
+#' # which have very small or large depth compared to the class average.
+#'
+#' hierar <- stats::dist(depth_observations_sweep, method = "manhattan") %>% hclust()
+#' hierar %>% plot()
+#' hierar %>% cutree(h = 199) %>% table()
+#' # observe that observation '29' which is a global outlier forms the only
+#' # singleton cluster(8) at height 199.
+#'
+#' # dissimilarity(rand index) matrix of trees ----
+#' di_supervised_trees  <- forage(model_ranger_supervised
+#'                                , newdata = iris_train
+#'                                , what  = "dissimilarity" #' or "proximity
+#'                                , context = "trees"
+#'                                )
+#' di_supervised_trees %>% as.matrix() %>% image()
+#' di_supervised_trees %>% as.matrix() %>% density() %>% plot()
+#' # indication of low 'correlation' between trees.
 #' @export
 forage <- function(object
                    , newdata

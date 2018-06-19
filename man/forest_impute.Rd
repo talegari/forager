@@ -2,11 +2,11 @@
 % Please edit documentation in R/forest_impute.R
 \name{forest_impute}
 \alias{forest_impute}
-\title{Impute using a random forest (or extratrees) in un/supervised setting.}
+\title{Impute using a tree ensemble in un/supervised setting.}
 \usage{
-forest_impute(dataset, object = NULL, method = "synthetic",
-  predictMethod = "terminalNodes", tol = 0.05, maxIter = 10L, seed = 1L,
-  ...)
+forest_impute(dataset, responseVarName, method = "synthetic",
+  predictMethod = "terminalNodes", implementation = "ranger", tol = 0.05,
+  maxIter = 10L, seed = 1L, nproc = 1L, ...)
 }
 \arguments{
 \item{dataset}{A list with two components:
@@ -22,16 +22,14 @@ forest_impute(dataset, object = NULL, method = "synthetic",
 
   }}
 
-\item{object}{A randomForest/ranger model.}
-
-\item{method}{(string) A method to build the random forest model when object
-is missing. Currently, only "synthetic" is implemented.}
+\item{method}{(string) A method to build the tree ensemble when object is
+missing. Currently, only "synthetic" is implemented.}
 
 \item{predictMethod}{(string) Method to to compute the proximity matrix.
 Currently, only "terminalNodes" is implemented.}
 
-\item{tol}{(number between 0 and 1) Threshold for the percentage change of
-the metric_relative.}
+\item{tol}{(number between 0 and 1) Threshold for the change of the metric.
+See 'details'.}
 
 \item{maxIter}{(positive integer) Maximum number of iterations.}
 
@@ -39,6 +37,9 @@ the metric_relative.}
 
 \item{...}{Arguments to be passed to synthetic_forest in the unsupervised
 case.}
+
+\item{object}{An object of class ranger or randomForest. If missing, the
+imputation is done in unsupervised mode.}
 }
 \value{
 A list with these elements:
@@ -49,31 +50,33 @@ A list with these elements:
 
   \item iter: Number of iterations.
 
-  \item errors: A vector of metric_relative of the last iteration
-  corresponding to each covariate.
+  \item errors: A vector of metric of the last iteration corresponding to
+  each covariate.
 
   }
 }
 \description{
-In the unsupervised case, random forest models are built on the
-  imputed data (of the previous iteration) and used to impute data in the
-  iteration until a stopping criteria is reached. In the supervised case, one
-  random forest model is used to impute for every iteration. See details.
+In the unsupervised case, tree ensemble built on the imputed
+  data (of the previous iteration) and used to impute data until a stopping
+  criteria is reached. In the supervised case, trained tree ensemble is used
+  to impute for every iteration. See 'details'.
 }
 \details{
-\itemize{ \item In the unsupervised case, when "synthetic" method is chosen,
-a random forest is grown to separate actual data from synthetic data. When
-the predictMethod is "terminalNodes", the proximity matrix is obtained using
-\code{\link{predict_proximity_observations_terminalNodes}}. In the supervised
-case, a random forest model is provided to the function.
+\itemize{
+
+\item In the unsupervised case, when "synthetic" method is chosen, a random
+forest is grown using 'datasetComplete' to separate actual data from
+synthetic data. When the predictMethod is "terminalNodes", the proximity
+matrix is computed.
 
 \item The missing data in each covariate is imputed by averaging non-missing
-values of the covariate where the weights are the proximities.
+values of the covariate where the weights are the proximities. This is the
+new 'datasetComplete'.
 
 \item This is repeated until maximum number of iterations specified by
-"maxiter" unless for consecutive iterations the percentage change in the
-metric_relative (RMSE for continuous data, Proportion of disagreements) for
-each covariate is less than a threshold ("tol").
+"maxiter" unless for consecutive iterations the change in the metric (MAPE
+for continuous data, Proportion of disagreements for factors) for each
+covariate is less than a threshold ("tol").
 
 }
 }

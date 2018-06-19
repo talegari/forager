@@ -68,7 +68,7 @@ predict_proximity_trees_terminalNodes <- function(object, newdata){
   terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
   similObject         <-
     proxy::simil(terminalNodesMatrix
-                , method = function(x, y) fossil::rand.index(x, y)
+                , method = function(x, y) clusteval::cluster_similarity(x, y, similarity = "rand")
                 , by_rows = FALSE
                 )
 
@@ -85,7 +85,7 @@ predict_dissimilarity_trees_terminalNodes <- function(object, newdata){
   terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
   distObject         <- proxy::dist(
     terminalNodesMatrix
-    , method = function(x, y) 1 - fossil::rand.index(x, y)
+    , method = function(x, y) 1 - clusteval::cluster_similarity(x, y, similarity = "rand")
     , by_rows = FALSE
     )
 

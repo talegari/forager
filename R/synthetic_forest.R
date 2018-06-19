@@ -3,7 +3,7 @@
 #' @description Builds a random forest model to classify actual vs synthetic
 #'   data where synthetic data is created by sampling each covariate as
 #'   suggested in
-#'   \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understaning
+#'   \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understanding
 #'    random forests} by Brieman.
 #'
 #' @param dataset A dataframe
@@ -128,7 +128,7 @@ synthetic_forest <- function(dataset
     }
 
     if(is.null(arguments[["keep.forest"]])){
-      arguments[["keep.forest"]] <- 5L
+      arguments[["keep.forest"]] <- TRUE
     }
 
     set.seed(seed)

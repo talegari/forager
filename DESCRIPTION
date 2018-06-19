@@ -15,7 +15,9 @@ Imports:
     MLmetrics (>= 1.1.1),
     igraph (>= 1.1.2),
     missRanger(>= 1.0.2),
-    fossil (>= 0.3.7),
+    clusteval (>= 0.1),
+    tibble (>= 1.4.2),
+    matrixStats (>= 0.53.1),
     stats,
     parallel,
 Depends:
@@ -26,4 +28,7 @@ RoxygenNote: 6.0.1
 Suggests:
     knitr (>= 1.15.1),
     rmarkdown (>= 1.4),
+    ggplot2 (>= 2.2.1),
+    grDevices,
+    Rtsne (>= 0.14),
 VignetteBuilder: knitr

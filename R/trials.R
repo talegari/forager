@@ -1,80 +1,73 @@
-# model_ranger <- synthetic_forest(iris[,1:4], implementation = "ranger")
-# summary(model_ranger)
-# model_ranger$prediction.error # OOB prediction error
+# # example of unsupervised imputation
 #
-# model_randomForest <- synthetic_forest(iris, implementation = "randomForest")
-# summary(model_randomForest)
-# mean(model_randomForest$err.rate[,1]) # OOB prediction error
-#
-# tn  <- forage(model_ranger      , newdata = iris, what = "terminalNodesMatrix")
-# tn2 <- forage(model_randomForest, newdata = iris, what = "terminalNodesMatrix")
-#
-# di  <- forage(model_ranger, newdata = iris[,1:4], what = "dissimilarity")
-# di2 <- forage(model_randomForest, newdata = iris, what = "dissimilarity")
-#
-# set.seed(1)
-# to <- Rtsne::Rtsne(di, is_distance = TRUE)
-# to$Y %>% as.data.frame() %>%
-#   ggplot2::ggplot(ggplot2::aes(V1, V2, color = iris$Species)) +
-#   ggplot2::geom_point()
-#
-# hclust(di, method = "average") %>% cutree(k = 3) %>% table(unclass(iris$Species))
-# hclust(di2, method = "average") %>% cutree(k = 3) %>% table(unclass(iris$Species))
-#
-# pr  <- forage(model_ranger, newdata = iris[,1:4], what = "proximity")
-# pr2 <- forage(model_randomForest, newdata = iris, what = "proximity")
-#
-# iris_model <- ranger::ranger(Species ~., data = iris, num.trees = 10)
-# iris_model2 <- randomForest::randomForest(Species ~., data = iris)
-# forage(iris_model, newdata = iris[,1:4], what = "proximity")
-#
-# out <- forage(iris_model, newdata = iris[, 1:4], what = "outlyingness", classes = iris$Species)
-# out2 <- forage(iris_model2, newdata = iris[, 1:4], what = "outlyingness", classes = iris$Species)
-# boxplot.stats(out) # look for 71 which is 5.78
-#
-# lab <- rep(NA, 150)
-# lab[which(out2 %in% boxplot.stats(out2)$out)] <- 1
-#
-# to$Y %>% as.data.frame() %>%
-#   dplyr::mutate(label = lab) %>%
-#   ggplot2::ggplot(ggplot2::aes(V1, V2, color = iris$Species)) +
-#   ggplot2::geom_point() +
-#   ggplot2::geom_label(ggplot2::aes(label = label))
-#
-# de <- forage(model_ranger, newdata = iris[, 1:4], what = "depth")
-# de2 <- forage(iris_model2, newdata = iris[, 1:4], what = "depth")
-#
-# dt <- forage(iris_model, newdata = iris, what = "dissimilarity", context = "trees")
-# dt %>% attr("Size")
-# dt
-#
-# hclust(dt) %>% plot()
-# to <- Rtsne::Rtsne(dt, is_distance = TRUE, perplexity = 3)
-# to$Y %>% as.data.frame() %>%
-#   ggplot2::ggplot(ggplot2::aes(V1, V2)) +
-#   ggplot2::geom_point()
-#
-# iris_with_na <- missRanger::generateNA(iris, 0.6)
+# # create 20% artificial missings values at random
+# iris_with_na  <- missRanger::generateNA(iris, 0.4, seed = 1)
+# # impute with mean/mode
 # iris_complete <- randomForest::na.roughfix(iris_with_na)
-# iris_missing <- is.na(iris_with_na) %>% as.data.frame()
+# # dataframe of missing positions
+# iris_missing  <- is.na(iris_with_na) %>% as.data.frame()
 #
-# aforest <- ranger::ranger(Species ~., data = iris)
-#
-# imp1 <- forest_impute(list(iris_complete, iris_missing), object = aforest)
-# imp1
+# system.time(
+#   imp1        <- forest_impute(list(iris_complete, iris_missing)
+#                                , implementation = "randomForest"
+#                                )
+#   )
+# imp1$iter # number of iterations
+# imp1$errors # errors of the last iteration
 #
 # compare_roughimpute_with_actual <- Map(metric_relative, iris_complete, iris, iris_missing) %>% unlist()
-# compare_roughimpute_with_actual
 # compare_forest_impute_with_actual <- Map(metric_relative, imp1$data, iris, iris_missing) %>% unlist()
-# compare_forest_impute_with_actual
 #
 # perf <- data.frame(
 #   colnames = names(compare_forest_impute_with_actual)
-#   , rough = compare_roughimpute_with_actual
-#   , forest = compare_forest_impute_with_actual
+#   , rough  = round(compare_roughimpute_with_actual, 2)
+#   , forest = round(compare_forest_impute_with_actual, 2)
 #   )
 # rownames(perf) <- NULL
 # perf
 #
-# imp2 <- forest_impute(list(iris_complete, iris_missing), object = model_ranger)
-# Map(metric_relative, imp2$data, iris, iris_missing) %>% unlist()
+# rfout <- randomForest::rfImpute(x = iris_with_na[,1:4], y = iris$Species, ntree = 1000)
+# rfout <- data.frame(rfout[,2:5], Species = rfout[[1]])
+# fout <- forest_impute(list(iris_complete, iris_missing)
+#               , responseVarName = "Species"
+#               , tol = 0
+#               , nproc = 8
+#               , implementation = "randomforest"
+#               )
+# Map(metric_relative, rfout, iris, iris_missing) %>% unlist()
+# Map(metric_relative, fout$data, iris, iris_missing) %>% unlist()
+#
+# # example of supervised imputation
+#
+# # partiton iris data
+# set.seed(1)
+# index      <- sample.int(nrow(iris), floor(0.7 * nrow(iris)))
+# iris_train <- iris[index, ]
+# iris_test  <- iris[-index, ]
+#
+# # create 20% artificial missings values at random
+# iris_test_with_na  <- missRanger::generateNA(iris_test, 0.2, seed = 1)
+# # impute with mean/mode
+# iris_test_complete <- randomForest::na.roughfix(iris_test_with_na)
+# # dataframe of missing positions
+# iris_test_missing  <- is.na(iris_test_with_na) %>% as.data.frame()
+#
+# model_ranger <- ranger::ranger(Species ~., data = iris_train)
+# model_ranger$prediction.error # 5% error
+# system.time(
+#   imp2       <- forest_impute(list(iris_test_complete, iris_test_missing)
+#                               , object = model_ranger
+#                               )
+#   )
+# compare_forest_impute_sup_with_actual <-
+#   Map(metric_relative, imp2$data, iris_test, iris_test_missing) %>% unlist()
+#
+# perf2 <- data.frame(
+#   colnames     = names(compare_forest_impute_sup_with_actual)
+#   , rough      = round(compare_roughimpute_with_actual, 2)
+#   , forest_sup = round(compare_forest_impute_sup_with_actual, 2)
+#   )
+# rownames(perf2) <- NULL
+# perf2
+# cbind(perf, forest_sup = perf2[,3])
+# # Note that some variables
