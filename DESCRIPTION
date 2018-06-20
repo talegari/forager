@@ -1,7 +1,7 @@
 Package: forager
 Type: Package
 Title: Compute auxiliary information (proximity, dissimilarity, outlyingness, depth) and imputation from tree ensembles on new data
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("KS", "Srikanth", email = "sri.teach@gmail.com", role = c("aut", "cre"))
 Description: Provides an extensible framework to compute various measures like proximity or dissimilarity between observations/trees, estimate outlyingness of an observation. An imputation technique is implemented under supervised and unsupervised setting. Currently, models from ranger and randomForest packages are supported.
 Imports:

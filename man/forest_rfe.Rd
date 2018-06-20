@@ -2,8 +2,7 @@
 % Please edit documentation in R/forest_rfe.R
 \name{forest_rfe}
 \alias{forest_rfe}
-\title{lightweight implementation of RFE using ranger random forest
-  implementation}
+\title{lightweight implementation of RFE using ranger}
 \usage{
 forest_rfe(dataset, responseVarName, sizes, sampleprop = 0.2, nsamples = 10,
   seed = 1, ...)
@@ -13,16 +12,16 @@ forest_rfe(dataset, responseVarName, sizes, sampleprop = 0.2, nsamples = 10,
 
 \item{responseVarName}{(string) Name of the response variable}
 
-\item{sizes}{(integer vector) Vector of number of variables}
+\item{sizes}{(integer vector) Vector of number of variables. When missing, sizes will be sequence of nc/2^i where the sequnce ranges from nc(number of columns) to 2.}
 
-\item{sampleprop}{(real number between 0 and 1) Proportion of observations
+\item{sampleprop}{(A real number between 0 and 1 or a vector) Proportion of observations. If not a single number and sizes is specified, this vector should have same length as sizes.
 per sample}
 
-\item{nsamples}{(positive integer) Number of samples}
+\item{nsamples}{(positive integer or a vector) Number of samples. If not a single number and sizes is specified, this vector should have same length as sizes.}
 
 \item{seed}{(positive integer) Seed}
 
-\item{...}{Arguments to be passed to `ranger::ranger`}
+\item{...}{Arguments to be passed to \code{\link[ranger]{ranger}}}
 }
 \value{
 A tibble with three columns: \itemize{
@@ -34,17 +33,72 @@ A tibble with three columns: \itemize{
   }
 }
 \description{
-Modifications to regular recursive feature elimination
-  procedure: \itemize{
+For datasets with large number of predictors, this
+  implementation has these modifications to regular recursive feature
+  elimination procedure:
 
-  \item Use oob prediction error as a proxy to model performance
+  \itemize{
 
-  \item Build forests on samples of data and average variable importance and
-  oob prediction error
+  \item Use oob prediction error as a proxy to model performance.
+
+  \item Build forests \code{\link[ranger]{ranger}} on samples of data and
+  average variable importance and oob prediction error.
 
   }
+
+  For a comprehensive RFE procedure with resampling, use
+  \code{\link[caret]{rfe}}
 }
 \examples{
 temp <- forest_rfe(iris, "Species")
 temp
+
+temp <- forest_rfe(iris
+                   , "Species"
+                   , sizes = c(5,4,3)
+                   , sampleprop = c(0.1, 0.2, 0.3)
+                   , nsamples = c(10, 20, 30)
+                   )
+temp
+
+temp <- forest_rfe(iris
+                   , "Species"
+                   , sizes = c(5,4,3)
+                   , sampleprop = 0.1
+                   , nsamples = c(10, 20, 30)
+                   )
+temp
+
+temp <- forest_rfe(iris
+                   , "Species"
+                   , sizes = c(5,4,3)
+                   , sampleprop = c(0.1, 0.2, 0.3)
+                   , nsamples = 10
+                   )
+temp
+
+temp <- forest_rfe(iris
+                   , "Species"
+                   , sizes = c(5, 4, 3)
+                   , sampleprop = c(0.1, 0.2, 0.3)
+                   , nsamples = 10
+                   , mtry = list(4, 3, 2)
+                   , num.trees = list(300, 500, 1000)
+                   , case.weights = replicate(3, runif(150), simplify = FALSE)
+                   )
+temp
+
+}
+\references{
+\itemize{
+
+  \item
+  \href{https://topepo.github.io/caret/recursive-feature-elimination.html}{RFE
+   using caret}
+
+  \item
+  \href{http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html}{RFE
+   using scikit learn}
+
+  }
 }
