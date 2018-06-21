@@ -1,4 +1,5 @@
 # metric for relative change
+# x is pred, y is true
 metric_relative <- function(x, y, z){
 
   if(sum(z) == 0){
@@ -8,7 +9,7 @@ metric_relative <- function(x, y, z){
   if(is.numeric(x)){
     MLmetrics::MAPE(x[z], y[z])
   } else {
-    sum(x[z] != y[z])/length(y[z])
+    sum(x[z] != y[z])/sum(z)
   }
 
 }

@@ -132,7 +132,7 @@ forest_rfe <- function(dataset
   }
 
   arguments      <-  list(...)
-  if(length(arguments) > 1){
+  if(length(arguments) > 0){
     assertthat::assert_that(
     all(sapply(arguments, function(x) inherits(x, "list")))
     )

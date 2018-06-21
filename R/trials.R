@@ -1,5 +1,7 @@
 # # example of unsupervised imputation
 #
+# library("magrittr")
+#
 # # create 20% artificial missings values at random
 # iris_with_na  <- missRanger::generateNA(iris, 0.4, seed = 1)
 # # impute with mean/mode
@@ -9,7 +11,7 @@
 #
 # system.time(
 #   imp1        <- forest_impute(list(iris_complete, iris_missing)
-#                                , implementation = "randomForest"
+#                                , implementation = "randomforest"
 #                                )
 #   )
 # imp1$iter # number of iterations
