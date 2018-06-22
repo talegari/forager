@@ -7,7 +7,7 @@ metric_relative <- function(x, y, z){
   }
 
   if(is.numeric(x)){
-    MLmetrics::MAPE(x[z], y[z])
+    mean(abs((y[z] - x[z])/y[z]))
   } else {
     sum(x[z] != y[z])/sum(z)
   }

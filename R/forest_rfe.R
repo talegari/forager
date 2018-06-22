@@ -142,7 +142,8 @@ forest_rfe <- function(dataset
   assertthat::assert_that(assertthat::assert_that(assertthat::is.count(seed)))
 
   # setup ----
-  nr             <- nrow(dataset)
+  nr      <- nrow(dataset)
+  dataset <- data.table::copy(dataset)
   data.table::setDT(dataset)
   predictorNames <- setdiff(colnames(dataset), responseVarName)
   if(is.null(arguments[["importance"]])){
