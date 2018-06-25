@@ -34,49 +34,74 @@
 #' @param nsamples (positive integer or a vector) Number of samples. If not a single number and sizes is specified, this vector should have same length as sizes.
 #' @param seed (positive integer) Seed
 #' @param ... Arguments to be passed to \code{\link[ranger]{ranger}}
-#' @return A tibble with three columns: \itemize{
+#' @return A list with:
 #'
-#'   \item size: Number of variables used \item ooberror: Out-of-box error of
-#'   the forest \item varimp: A list-column where each item is a data.frame with
+#' \itemize{
+#'
+#'   \item (rfeTable) A tibble with three columns:
+#'
+#'   \itemize{
+#'
+#'     \item size: Number of variables used \item ooberror: Out-of-box error of
+#'   the forest
+#'
+#'     \item varimp: A list-column where each item is a data.frame with
 #'   variable names and importance
 #'
+#'     }
+#'
+#'  \item (oobchangeTable) A dataframe with five columns sorted by absolute value of the variable 'oepc'.
+#'
+#'  \itemize{
+#'
+#'    \item variable: Name of the variable that got removed at some stage
+#'
+#'    \item size: Number of variables that were considered before removing the variable
+#'
+#'    \item reducedSize: Number of the variables at next stage. Gives an idea of how many variables were reduced at that stage.
+#'
+#'    \item oepc: OOB error percentage change
+#'
+#'    \item importance: Importance of the variable at the stage when the variable was decided to be removed.
+#'
 #'   }
+#' }
 #' @examples
 #' temp <- forest_rfe(iris, "Species")
 #' temp
 #'
 #' temp <- forest_rfe(iris
 #'                    , "Species"
-#'                    , sizes = c(5,4,3)
-#'                    , sampleprop = c(0.1, 0.2, 0.3)
-#'                    , nsamples = c(10, 20, 30)
+#'                    , sizes = c(4,2)
+#'                    , sampleprop = c(0.2, 0.3)
+#'                    , nsamples = c(20, 30)
 #'                    )
 #' temp
 #'
 #' temp <- forest_rfe(iris
 #'                    , "Species"
-#'                    , sizes = c(5,4,3)
+#'                    , sizes = c(4,2)
 #'                    , sampleprop = 0.1
-#'                    , nsamples = c(10, 20, 30)
+#'                    , nsamples = c(20, 30)
 #'                    )
 #' temp
 #'
 #' temp <- forest_rfe(iris
 #'                    , "Species"
-#'                    , sizes = c(5,4,3)
-#'                    , sampleprop = c(0.1, 0.2, 0.3)
+#'                    , sizes = c(4,2)
+#'                    , sampleprop = c(0.2, 0.3)
 #'                    , nsamples = 10
 #'                    )
 #' temp
 #'
 #' temp <- forest_rfe(iris
 #'                    , "Species"
-#'                    , sizes = c(5, 4, 3)
-#'                    , sampleprop = c(0.1, 0.2, 0.3)
+#'                    , sizes = c(4,2)
+#'                    , sampleprop = c(0.2, 0.3)
 #'                    , nsamples = 10
-#'                    , mtry = list(4, 3, 2)
-#'                    , num.trees = list(300, 500, 1000)
-#'                    , case.weights = replicate(3, runif(150), simplify = FALSE)
+#'                    , mtry = list(3, 2)
+#'                    , num.trees = list(500, 1000)
+#'                    , case.weights = replicate(2, runif(150), simplify = FALSE)
 #'                    )
 #' temp
 #'
@@ -102,8 +127,8 @@ forest_rfe <- function(dataset
     assertthat::assert_that(all(sapply(sizes, assertthat::is.count)))
     assertthat::assert_that(length(sizes) == dplyr::n_distinct(sizes))
     sizes <- sort(sizes, decreasing = TRUE)
-    assertthat::assert_that(all(sizes <= nc))
-    assertthat::assert_that(nc %in% sizes)
+    assertthat::assert_that(all(sizes <= (nc - 1)))
+    assertthat::assert_that((nc - 1) %in% sizes)
     assertthat::assert_that(length(sizes) == length(sampleprop) ||
                               length(sampleprop) == 1
                             )
@@ -124,7 +149,7 @@ forest_rfe <- function(dataset
       )
 
   } else {
-    sizes <- unique(ceiling(sapply(0:floor(log(nc, 2)), function(x) nc/2^x)))
+    sizes <- unique(ceiling(sapply(0:floor(log(nc - 1, 2)), function(x) (nc - 1)/2^x)))
     assertthat::assert_that(dplyr::between(sampleprop, 1e-8, 1))
     assertthat::assert_that(assertthat::assert_that(assertthat::is.count(nsamples)))
     sampleprop <- rep(sampleprop, length(sizes))
@@ -258,12 +283,43 @@ forest_rfe <- function(dataset
   }
 
   # return ----
-  result <- tibble::tibble(size         = as.integer(sizes)
-                           , ooberror   = oobErrorsList
-                           , varimp     = topVarsList
-                           , sampleprop = sampleprop
-                           , nsamples   = as.integer(nsamples)
-                           )
+  rfeTable <- tibble::tibble(size         = as.integer(sizes)
+                             , ooberror   = oobErrorsList
+                             , varimp     = topVarsList
+                             , sampleprop = sampleprop
+                             , nsamples   = as.integer(nsamples)
+                             )
 
-  return(result)
+  rfeTableu <- rfeTable[nrow(rfeTable):1, ]
+
+  varRemoved <- function(df1, df2){
+    setdiff(df1[["variable"]], df2[["variable"]])
+  }
+
+  computeOobErrorChange <- function(i){
+    variables <- varRemoved(rfeTableu[["varimp"]][[i + 1]], rfeTableu[["varimp"]][[i]])
+    variable  <- NULL
+    data.frame(
+      variable      = variables
+      , size        = rep_len(rfeTableu[["size"]][(i + 1)], length(variables))
+      , reducedSize = rep_len(rfeTableu[["size"]][i], length(variables))
+      , oepc        = (rfeTableu[["ooberror"]][i] - rfeTableu[["ooberror"]][i + 1]) %>%
+                        magrittr::divide_by((rfeTableu[["ooberror"]][i + 1] + 1e-8))
+      , importance  = subset(rfeTableu[["varimp"]][[i + 1]], variable %in% variables)[["importance"]]
+               )
+  }
+
+  oobchangeTable <- data.table::rbindlist(lapply(1:(nrow(rfeTable) - 1)
+                                                 , computeOobErrorChange
+                                                 )
+                                          )
+
+  return(list(rfeTable = rfeTableu
+              , oobchangeTable = oobchangeTable[order(abs(oobchangeTable[["oepc"]])
+                                                      , oobchangeTable[["importance"]]
+                                                      , decreasing = TRUE
+                                                      )
+                                                , ]
+              )
+         )
 }

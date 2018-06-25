@@ -24,13 +24,38 @@ per sample}
 \item{...}{Arguments to be passed to \code{\link[ranger]{ranger}}}
 }
 \value{
-A tibble with three columns: \itemize{
+A list with:
 
-  \item size: Number of variables used \item ooberror: Out-of-box error of
-  the forest \item varimp: A list-column where each item is a data.frame with
+\itemize{
+
+  \item (rfeTable) A tibble with three columns:
+
+  \itemize{
+
+    \item size: Number of variables used \item ooberror: Out-of-box error of
+  the forest
+
+    \item varimp: A list-column where each item is a data.frame with
   variable names and importance
 
+    }
+
+ \item (oobchangeTable) A dataframe with five columns sorted by absolute value of the variable 'oepc'.
+
+ \itemize{
+
+   \item variable: Name of the variable that got removed at some stage
+
+   \item size: Number of variables that were considered before removing the variable
+
+   \item reducedSize: Number of the variables at next stage. Gives an idea of how many variables were reduced at that stage.
+
+   \item oepc: OOB error percentage change
+
+   \item importance: Importance of the variable at the stage when the variable was decided to be removed.
+
   }
+}
 }
 \description{
 For datasets with large number of predictors, this
@@ -55,36 +80,36 @@ temp
 
 temp <- forest_rfe(iris
                    , "Species"
-                   , sizes = c(5,4,3)
-                   , sampleprop = c(0.1, 0.2, 0.3)
-                   , nsamples = c(10, 20, 30)
+                   , sizes = c(4,2)
+                   , sampleprop = c(0.2, 0.3)
+                   , nsamples = c(20, 30)
                    )
 temp
 
 temp <- forest_rfe(iris
                    , "Species"
-                   , sizes = c(5,4,3)
+                   , sizes = c(4,2)
                    , sampleprop = 0.1
-                   , nsamples = c(10, 20, 30)
+                   , nsamples = c(20, 30)
                    )
 temp
 
 temp <- forest_rfe(iris
                    , "Species"
-                   , sizes = c(5,4,3)
-                   , sampleprop = c(0.1, 0.2, 0.3)
+                   , sizes = c(4,2)
+                   , sampleprop = c(0.2, 0.3)
                    , nsamples = 10
                    )
 temp
 
 temp <- forest_rfe(iris
                    , "Species"
-                   , sizes = c(5, 4, 3)
-                   , sampleprop = c(0.1, 0.2, 0.3)
+                   , sizes = c(4,2)
+                   , sampleprop = c(0.2, 0.3)
                    , nsamples = 10
-                   , mtry = list(4, 3, 2)
-                   , num.trees = list(300, 500, 1000)
-                   , case.weights = replicate(3, runif(150), simplify = FALSE)
+                   , mtry = list(3, 2)
+                   , num.trees = list(500, 1000)
+                   , case.weights = replicate(2, runif(150), simplify = FALSE)
                    )
 temp
 
