@@ -4,12 +4,14 @@
 \alias{predict_proximity_observations_terminalNodes}
 \title{predict_proximity_observations_terminalNodes}
 \usage{
-predict_proximity_observations_terminalNodes(object, newdata)
+predict_proximity_observations_terminalNodes(object, newdata, nproc)
 }
 \arguments{
 \item{object}{object}
 
 \item{newdata}{newdata}
+
+\item{nproc}{number of parallel processes to use}
 }
 \description{
 predict_proximity_observations_terminalNodes

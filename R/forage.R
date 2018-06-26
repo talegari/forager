@@ -14,6 +14,7 @@
 #' @param context (string) Specify whether output should be computed for
 #'   'observations' or 'trees'. Default is 'observations'
 #' @param classes (factor) Required when 'what' is 'outlyingness'
+#' @param nproc (positive integer) Number of processors to use
 #' @param ... Currently not in use.
 #' @return The following are returned depending on 'what':
 #'
@@ -175,6 +176,7 @@ forage <- function(object
                    , method  = "terminalNodes"
                    , context = "observations"
                    , classes = NULL
+                   , nproc   = 1
                    , ...
                    ){
   # assertions ----
@@ -214,6 +216,8 @@ forage <- function(object
                                         , toString(contextValid)
                                         )
                          )
+  assertthat::assert_that(assertthat::is.count(nproc))
+  nproc <- max(1, min(nproc, parallel::detectCores() - 1))
 
   if(what != "outlyingness"){
     if(!is.null(classes)){
@@ -234,20 +238,39 @@ forage <- function(object
   }
 
   # create the function_string and call it ----
-  if(method == "terminalNodes" & what != "depth"){
-    if(what == "terminalNodesMatrix"){
-      function_string <- paste("predict", what, method, sep = "_")
-    } else {
-      function_string <- paste("predict", what, context, method, sep = "_")
-    }
-  } else {
-    function_string <- paste("predict", what, context, sep = "_")
-  }
+  # only supported method as of now is 'terminalNodes'
+  function_string <- dplyr::case_when(
+    what == "terminalNodesMatrix"
+      ~ paste("predict"
+                , what
+                , method
+                , sep = "_"
+                )
+    , what == "depth"
+       ~ paste("predict"
+                , what
+                , sep = "_"
+                )
+    , what != "depth" && what != "terminalNodesMatrix"
+        ~ paste("predict"
+                 , what
+                 , context
+                 , method
+                 , sep = "_"
+                 )
+  )
 
   if(what == "outlyingness"){
-    predictResult <- do.call(function_string, list(object, newdata, classes))
+    predictResult <- do.call(function_string
+                               , list(object, newdata, classes, nproc)
+                             )
   } else {
-    predictResult <- do.call(function_string, list(object, newdata))
+
+      if(context == "trees" || what == "terminalNodesMatrix"){
+        predictResult <- do.call(function_string, list(object, newdata))
+      } else {
+          predictResult <- do.call(function_string, list(object, newdata, nproc))
+      }
   }
 
   # return ----

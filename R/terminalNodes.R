@@ -25,6 +25,7 @@ predict_terminalNodesMatrix_terminalNodes <- function(object, newdata){
     terminalNodesMatrix   <- attr(predictedRandomForest, "nodes")
   }
 
+
   return( terminalNodesMatrix )
 }
 
@@ -33,12 +34,23 @@ predict_terminalNodesMatrix_terminalNodes <- function(object, newdata){
 #' @description predict_dissimilarity_observations_terminalNodes
 #' @param object object
 #' @param newdata newdata
-predict_dissimilarity_observations_terminalNodes <- function(object, newdata){
+#' @param nproc number of parallel processes to use
+predict_dissimilarity_observations_terminalNodes <- function(object, newdata, nproc){
 
   terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
-  distObject          <- proxy::dist(terminalNodesMatrix
-                                     , method = function(x, y) sqrt(1 - mean(x == y))
-                                     )
+
+  hammingDistancePartialFuncPtr <- RcppXPtrUtils::cppXPtr(
+  "double customDist(const arma::mat &A, const arma::mat &B) { return arma::accu(A != B); }"
+  , depends = c("RcppArmadillo")
+  )
+
+  distObject <- parallelDist::parDist(terminalNodesMatrix
+                                      , method  ="custom"
+                                      , func    = hammingDistancePartialFuncPtr
+                                      , threads = nproc
+                                      ) %>%
+    magrittr::divide_by(ncol(terminalNodesMatrix)) %>%
+    sqrt()
 
   return( distObject )
 }
@@ -48,14 +60,24 @@ predict_dissimilarity_observations_terminalNodes <- function(object, newdata){
 #' @description predict_proximity_observations_terminalNodes
 #' @param object object
 #' @param newdata newdata
-predict_proximity_observations_terminalNodes <- function(object, newdata){
+#' @param nproc number of parallel processes to use
+predict_proximity_observations_terminalNodes <- function(object, newdata, nproc){
 
   terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
-  similObject         <- proxy::simil(terminalNodesMatrix
-                                      , method = function(x, y) mean(x == y)
-                                      )
 
-  return( similObject )
+  hammingSimilarityFuncPtr <- RcppXPtrUtils::cppXPtr(
+  "double customDist(const arma::mat &A, const arma::mat &B) { return arma::accu(A == B); }"
+  , depends = c("RcppArmadillo")
+  )
+
+  distObject <- parallelDist::parDist(terminalNodesMatrix
+                                      , method  ="custom"
+                                      , func    = hammingSimilarityFuncPtr
+                                      , threads = nproc
+                                      ) %>%
+    magrittr::divide_by(ncol(terminalNodesMatrix))
+
+  return( distObject )
 }
 
 #' @name predict_proximity_trees_terminalNodes
@@ -98,12 +120,14 @@ predict_dissimilarity_trees_terminalNodes <- function(object, newdata){
 #' @param object object
 #' @param newdata newdata
 #' @param classes (a factor) classes
+#' @param nproc number of parallel processes to use
 predict_outlyingness_observations_terminalNodes <- function(object
                                                             , newdata
                                                             , classes
+                                                            , nproc
                                                             ){
 
-  similObject <- predict_proximity_observations_terminalNodes(object, newdata)
+  similObject <- predict_proximity_observations_terminalNodes(object, newdata, nproc)
   subset_dist <- utils::getFromNamespace("subset.dist", "proxy")
 
   classwiseOut <- function(aClass){

@@ -53,13 +53,13 @@ depth_from_randomForest <- function(treelike){
   return(depths)
 }
 
-#' @name predict_depth_observations.ranger
-#' @title predict_depth_observations.ranger
-#' @description predict_depth_observations.ranger
+#' @name predict_depth.ranger
+#' @title predict_depth.ranger
+#' @description predict_depth.ranger
 #' @param object A tree ensemble model
 #' @param data data
 #' @param nproc number of cores to use for parallel processing
-predict_depth_observations.ranger <- function(object
+predict_depth.ranger <- function(object
                                               , data
                                               , nproc = 1
                                               ){
@@ -86,13 +86,13 @@ predict_depth_observations.ranger <- function(object
   return(outMat)
 }
 
-#' @name predict_depth_observations.randomForest
-#' @title predict_depth_observations.randomForest
-#' @description predict_depth_observations.randomForest
+#' @name predict_depth.randomForest
+#' @title predict_depth.randomForest
+#' @description predict_depth.randomForest
 #' @param object A tree ensemble model
 #' @param data data
 #' @param nproc number of cores to use for parallel processing
-predict_depth_observations.randomForest <- function(object
+predict_depth.randomForest <- function(object
                                                     , data
                                                     , nproc = 1
                                                     ){
@@ -120,16 +120,16 @@ predict_depth_observations.randomForest <- function(object
   return(outMat)
 }
 
-#' @name predict_depth_observations
-#' @title predict_depth_observations
-#' @description predict_depth_observations
+#' @name predict_depth
+#' @title predict_depth
+#' @description predict_depth
 #' @param object A tree ensemble model
 #' @param data data
 #' @param parallel (flag) Whether to use multicore parallel processing on
 #'   unix-alike systems.
-predict_depth_observations <- function(object
+predict_depth <- function(object
                                        , data
                                        , parallel = TRUE
                                        ){
-  UseMethod("predict_depth_observations", object)
+  UseMethod("predict_depth", object)
 }
