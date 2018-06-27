@@ -263,9 +263,7 @@ forest_impute <- function(dataset
       message("oobError: ", round(ooberror, 2))
 
       # predict and compute distance matrix
-      dO <- as.matrix(
-              predictFun(object, newdata = datasetCurrent, nproc = nproc)
-            )
+      dO <- as.matrix(predictFun(object, newdata = datasetCurrent))
 
       # function to impute a column (works on datasetCurrent)
       imputer <- function(j){
@@ -370,14 +368,9 @@ forest_impute <- function(dataset
       message("oobError: ", round(ooberror, 2))
 
       # predict and compute distance matrix
-      dO <-
-        as.matrix(
-          predictFun(
-            object
-            , newdata = datasetCurrent[, -c(responseVarName), with = FALSE]
-            , nproc   = nproc
-            )
-          )
+      dO <- as.matrix(predictFun(object
+                                 , newdata = datasetCurrent[, -c(responseVarName), with = FALSE])
+                      )
 
       # function to impute a column (works on datasetCurrent except responseVarName)
       imputer <- function(j){

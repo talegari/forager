@@ -4,14 +4,12 @@
 \alias{predict_dissimilarity_observations_terminalNodes}
 \title{predict_dissimilarity_observations_terminalNodes}
 \usage{
-predict_dissimilarity_observations_terminalNodes(object, newdata, nproc)
+predict_dissimilarity_observations_terminalNodes(object, newdata)
 }
 \arguments{
 \item{object}{object}
 
 \item{newdata}{newdata}
-
-\item{nproc}{number of parallel processes to use}
 }
 \description{
 predict_dissimilarity_observations_terminalNodes

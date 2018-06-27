@@ -4,7 +4,7 @@
 \alias{predict_outlyingness_observations_terminalNodes}
 \title{predict_outlyingness_observations_terminalNodes}
 \usage{
-predict_outlyingness_observations_terminalNodes(object, newdata, classes, nproc)
+predict_outlyingness_observations_terminalNodes(object, newdata, classes)
 }
 \arguments{
 \item{object}{object}
@@ -12,8 +12,6 @@ predict_outlyingness_observations_terminalNodes(object, newdata, classes, nproc)
 \item{newdata}{newdata}
 
 \item{classes}{(a factor) classes}
-
-\item{nproc}{number of parallel processes to use}
 }
 \description{
 predict_outlyingness_observations_terminalNodes

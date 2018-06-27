@@ -5,7 +5,7 @@
 \title{Obtain various outputs using a trained tree ensemble on new data}
 \usage{
 forage(object, newdata, what = "dissimilarity", method = "terminalNodes",
-  context = "observations", classes = NULL, nproc = 1, ...)
+  context = "observations", classes = NULL, ...)
 }
 \arguments{
 \item{object}{Object of class 'ranger', 'randomForest'}
@@ -23,8 +23,6 @@ implemented: terminalNodes. Default is 'terminalNodes'}
 'observations' or 'trees'. Default is 'observations'}
 
 \item{classes}{(factor) Required when 'what' is 'outlyingness'}
-
-\item{nproc}{(positive integer) Number of processors to use}
 
 \item{...}{Currently not in use.}
 }
