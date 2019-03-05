@@ -12,7 +12,7 @@
 #' @param seed (a positive integer) Seed for sampling.
 #' @param implementation (string) Implemenation to use to build the model. The
 #'   following are supported: 'ranger', 'randomForest'.
-#' @param ... Arguments to be passed to \code{\link[ranger]{ranger}}.
+#' @param ... Arguments to be passed to implementation.
 #' @return A tree ensemble with one these classes: 'ranger', 'randomForest'
 #' @details
 #' \href{https://www.stat.berkeley.edu/~breiman/Using_random_forests_v4.0.pdf}{Understanding
@@ -40,21 +40,17 @@
 #'
 #' # ranger
 #' model_ranger <- synthetic_forest(iris, implementation = "ranger")
-#' summary(model_ranger)
-#' model_ranger$prediction.error # OOB prediction error
+#' oob_error(model_ranger)
 #'
 #' # randomForest
-#' model_randomForest <- synthetic_forest(iris, implementation = "randomForest")
-#' summary(model_randomForest)
-#' mean(model_randomForest$err.rate[,1]) # OOB prediction error
+#' model_rf <- synthetic_forest(iris, implementation = "randomForest")
+#' oob_error(model_rf)
 #'
 #' # extratrees
 #' model_et <- synthetic_forest(iris, implementation = "ranger", splitrule = "extratrees")
-#' summary(model_et)
-#' model_et$prediction.error # OOB prediction error
+#' oob_error(model_et)
 #'
 #' @export
-
 synthetic_forest <- function(dataset
                              , prop   = TRUE
                              , seed   = 1L
@@ -62,7 +58,7 @@ synthetic_forest <- function(dataset
                              , ...
                              ){
 
-  # assertions                                                                ----
+  # assertions ----
   assertthat::assert_that(inherits(dataset, "data.frame")
                           , msg = "'dataset' should inherit the 'data.frame' class.")
   assertthat::assert_that(!anyNA(dataset), msg = "'dataset' cannot contain missing values.")
@@ -80,7 +76,7 @@ synthetic_forest <- function(dataset
 
   arguments <- list(...)
 
-  # extend data with synthetic                                                ----
+  # extend data with synthetic ----
   extdata  <- data.table::rbindlist(
     list(dataset
          , generate_synthetic_data(dataset, prop, seed)
@@ -99,8 +95,10 @@ synthetic_forest <- function(dataset
                                )
           ]
   data.table::setDF(extdata)
+
+  # grow the forest ----
   if(implementation == "ranger"){
-    # prep arguments for ranger and call it                                     ----
+    # prep arguments for ranger and call it ----
     if(is.null(arguments[["num.trees"]])){
       arguments[["num.trees"]] <- 1000L
     }
@@ -118,7 +116,7 @@ synthetic_forest <- function(dataset
                         )
                      )
   } else {
-    # prep arguments for randomForest and call it                               ----
+    # prep arguments for randomForest and call it ----
     if(is.null(arguments[["ntree"]])){
       arguments[["ntree"]] <- 1000L
     }
@@ -141,6 +139,6 @@ synthetic_forest <- function(dataset
                      )
   }
 
-  # return                                                                    ----
+  # return ----
   return(model)
 }

@@ -1,114 +1,69 @@
 # terminalNodes workhorses
 
-#' @name predict_terminalNodesMatrix_terminalNodes
-#' @title predict_terminalNodesMatrix_terminalNodes
-#' @description predict_terminalNodesMatrix_terminalNodes
-#' @param object object
-#' @param newdata newdata
-predict_terminalNodesMatrix_terminalNodes <- function(object, newdata){
+terminalNodes <- function(model, data){
 
-  if(inherits(object, "ranger")){
-    predObject          <- stats::predict(object    = object
-                                          , data    = newdata
-                                          , type    = "terminalNodes"
-                                          , verbose = FALSE
-                                          )
-    terminalNodesMatrix <- predObject[["predictions"]]
-  }
+  UseMethod("terminalNodes")
 
-  if(inherits(object, "randomForest")){
-    predictedRandomForest <- stats::predict(object
-                                            , newdata = newdata
-                                            , type    = "response"
-                                            , nodes   = TRUE
-                                            )
-    terminalNodesMatrix   <- attr(predictedRandomForest, "nodes")
-  }
-
-  return( terminalNodesMatrix )
 }
 
-#' @name predict_dissimilarity_observations_terminalNodes
-#' @title predict_dissimilarity_observations_terminalNodes
-#' @description predict_dissimilarity_observations_terminalNodes
-#' @param object object
-#' @param newdata newdata
-predict_dissimilarity_observations_terminalNodes <- function(object, newdata){
+terminalNodes.ranger <- function(model, data){
 
-  terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
-  distObject          <- proxy::dist(terminalNodesMatrix
-                                     , method = function(x, y) sqrt(1 - mean(x == y))
-                                     )
+  predmodel <- stats::predict(model    = model
+                              , data    = data
+                              , type    = "terminalNodes"
+                              , verbose = FALSE
+                              )
 
-  return( distObject )
+  return(predmodel[["predictions"]])
 }
 
-#' @name predict_proximity_observations_terminalNodes
-#' @title predict_proximity_observations_terminalNodes
-#' @description predict_proximity_observations_terminalNodes
-#' @param object object
-#' @param newdata newdata
-predict_proximity_observations_terminalNodes <- function(object, newdata){
+terminalNodes.randomForest <- function(model, data){
 
-  terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
-  similObject         <- proxy::simil(terminalNodesMatrix
-                                      , method = function(x, y) mean(x == y)
-                                      )
+  predmodel <- stats::predict(model
+                              , data = data
+                              , type    = "response"
+                              , nodes   = TRUE
+                              )
 
-  return( similObject )
+  return(attr(predictedRandomForest, "nodes"))
 }
 
-#' @name predict_proximity_trees_terminalNodes
-#' @title predict_proximity_trees_terminalNodes
-#' @description predict_proximity_trees_terminalNodes
-#' @param object object
-#' @param newdata newdata
-predict_proximity_trees_terminalNodes <- function(object, newdata){
 
-  terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
-  similObject         <-
-    proxy::simil(terminalNodesMatrix
-                , method = function(x, y) clusteval::cluster_similarity(x, y, similarity = "rand")
-                , by_rows = FALSE
-                )
+dist_terminalNodes <- function(model, data){
 
-  return( similObject )
+  parallelDist::parDist(terminalNodes(model, data)
+                        , method = "hamming"
+                        )
 }
 
-#' @name predict_dissimilarity_trees_terminalNodes
-#' @title predict_dissimilarity_trees_terminalNodes
-#' @description predict_dissimilarity_trees_terminalNodes
-#' @param object object
-#' @param newdata newdata
-predict_dissimilarity_trees_terminalNodes <- function(object, newdata){
+proximity_terminalNodes <- function(model, data){
 
-  terminalNodesMatrix <- predict_terminalNodesMatrix_terminalNodes(object, newdata)
-  distObject         <- proxy::dist(
-    terminalNodesMatrix
-    , method = function(x, y) 1 - clusteval::cluster_similarity(x, y, similarity = "rand")
-    , by_rows = FALSE
-    )
-
-  return( distObject )
+  parallelDist::parDist(terminalNodes(model, data)
+                        , method = "hamming"
+                        ) %>%
+    proxy::as.simil()
 }
 
-#' @name predict_outlyingness_observations_terminalNodes
-#' @title predict_outlyingness_observations_terminalNodes
-#' @description predict_outlyingness_observations_terminalNodes
-#' @param object object
-#' @param newdata newdata
-#' @param classes (a factor) classes
-predict_outlyingness_observations_terminalNodes <- function(object
-                                                            , newdata
+knn_terminalNodes <- function(model, data, k){
+
+  dbscan::kNN(terminalNodes(model, data)
+              , k = k
+              , )
+
+}
+
+
+predict_outlyingness_observations_terminalNodes <- function(model
+                                                            , data
                                                             , classes
                                                             ){
 
-  similObject <- predict_proximity_observations_terminalNodes(object, newdata)
+  similmodel <- predict_proximity_observations_terminalNodes(model, data)
   subset_dist <- utils::getFromNamespace("subset.dist", "proxy")
 
   classwiseOut <- function(aClass){
     classIndex <- which(classes == aClass)
-    classSimil <- (as.matrix(subset_dist(similObject, classIndex)))^2
+    classSimil <- (as.matrix(subset_dist(similmodel, classIndex)))^2
     return( data.table::data.table(index = classIndex
                                    , outlyingness = 1/colSums(classSimil)
                                    )
