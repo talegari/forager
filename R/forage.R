@@ -53,6 +53,7 @@
 #'
 #'   }
 #' @examples
+#' \dontrun{
 #' library("magrittr")
 #' library("ggplot2")
 #'
@@ -168,6 +169,7 @@
 #' di_supervised_trees %>% as.matrix() %>% image()
 #' di_supervised_trees %>% as.matrix() %>% density() %>% plot()
 #' # indication of low 'correlation' between trees.
+#' }
 #' @export
 forage <- function(object
                    , newdata

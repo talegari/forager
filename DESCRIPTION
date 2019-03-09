@@ -18,13 +18,17 @@ Imports:
     clusteval (>= 0.1),
     tibble (>= 1.4.2),
     matrixStats (>= 0.53.1),
+    dbscan (>= 1.1.3),
+    future.apply,
+    iterators (>= 1.0.10),
+    parallelDist (>= 0.2.2.9),
     stats,
     parallel,
 Depends:
     R (>= 3.4.0)
 License: GPL-3
 Encoding: UTF-8
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 Suggests:
     knitr (>= 1.15.1),
     rmarkdown (>= 1.4),

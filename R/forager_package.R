@@ -114,4 +114,5 @@
 #'
 #' @importFrom data.table :=
 #' @importFrom magrittr %>%
+#' @importFrom stats predict
 "_PACKAGE"

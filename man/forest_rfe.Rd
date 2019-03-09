@@ -4,8 +4,8 @@
 \alias{forest_rfe}
 \title{lightweight implementation of RFE using ranger}
 \usage{
-forest_rfe(dataset, responseVarName, sizes, sampleprop = 0.2, nsamples = 10,
-  seed = 1, ...)
+forest_rfe(dataset, responseVarName, sizes, sampleprop = 0.2,
+  nsamples = 10, seed = 1, ...)
 }
 \arguments{
 \item{dataset}{(object inheriting data.frame class) A dataframe}

@@ -64,7 +64,7 @@
 #' }
 #'
 #' @examples
-#'
+#' \dontrun{
 #' # example of unsupervised imputation
 #'
 #' library("magrittr")
@@ -147,7 +147,7 @@
 #' rownames(perf2) <- NULL
 #' perf2
 #' cbind(perf, forest_sup = perf2[,3])
-#'
+#' }
 #' @seealso \code{\link[randomForest]{rfImpute}}
 #' @export
 

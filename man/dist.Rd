@@ -4,7 +4,8 @@
 \alias{dist}
 \title{Distance matrix from unsupervised tree ensemble}
 \usage{
-dist(dataset, method = "synthetic", predictMethod = "terminalNodes", ...)
+dist(dataset, method = "synthetic", predictMethod = "terminalNodes",
+  ...)
 }
 \arguments{
 \item{dataset}{A dataframe}
@@ -29,6 +30,8 @@ If method is 'synthetic', a tree ensemble is grown to seperate
   cooccurance in terminal nodes using 'forage' function.
 }
 \examples{
+\dontrun{
 dm <- dist(iris[, 1:4])
 attr(dm, "Size")
+}
 }

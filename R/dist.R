@@ -12,8 +12,10 @@
 #'   predictMethod is 'terminalNodes', distance matrix is computed from
 #'   cooccurance in terminal nodes using 'forage' function.
 #' @examples
+#' \dontrun{
 #' dm <- dist(iris[, 1:4])
 #' attr(dm, "Size")
+#' }
 #' @export
 dist <- function(dataset
                  , method        = "synthetic"
@@ -51,8 +53,8 @@ dist <- function(dataset
 #'   predictMethod is 'terminalNodes', similarity matrix is computed from
 #'   cooccurance in terminal nodes using 'forage' function.
 #' @examples
-#' dm <- proximity(iris[, 1:4])
-#' attr(dm, "Size")
+#' #dm <- proximity(iris[, 1:4])
+#' #attr(dm, "Size")
 #' @export
 proximity <- function(dataset
                       , method        = "synthetic"

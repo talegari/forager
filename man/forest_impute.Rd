@@ -5,8 +5,8 @@
 \title{Impute using a tree ensemble in un/supervised setting}
 \usage{
 forest_impute(dataset, responseVarName, method = "synthetic",
-  predictMethod = "terminalNodes", implementation = "ranger", tol = 0.05,
-  maxIter = 10L, seed = 1L, nproc = 1L, ...)
+  predictMethod = "terminalNodes", implementation = "ranger",
+  tol = 0.05, maxIter = 10L, seed = 1L, nproc = 1L, ...)
 }
 \arguments{
 \item{dataset}{A list with two components:
@@ -86,7 +86,7 @@ covariate is less than a threshold ("tol").
 }
 }
 \examples{
-
+\dontrun{
 # example of unsupervised imputation
 
 library("magrittr")
@@ -169,7 +169,7 @@ perf2 <- data.frame(
 rownames(perf2) <- NULL
 perf2
 cbind(perf, forest_sup = perf2[,3])
-
+}
 }
 \seealso{
 \code{\link[randomForest]{rfImpute}}

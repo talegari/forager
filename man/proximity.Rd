@@ -5,8 +5,8 @@
 \alias{similarity}
 \title{Proximity matrix from unsupervised tree ensemble}
 \usage{
-proximity(dataset, method = "synthetic", predictMethod = "terminalNodes",
-  ...)
+proximity(dataset, method = "synthetic",
+  predictMethod = "terminalNodes", ...)
 }
 \arguments{
 \item{dataset}{A dataframe}
@@ -31,6 +31,6 @@ If method is 'synthetic', a tree ensemble is grown to seperate
   cooccurance in terminal nodes using 'forage' function.
 }
 \examples{
-dm <- proximity(iris[, 1:4])
-attr(dm, "Size")
+#dm <- proximity(iris[, 1:4])
+#attr(dm, "Size")
 }

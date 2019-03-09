@@ -24,6 +24,7 @@ stack_impute(dataset, newdata, method = "missforest", seed = 1L, ...)
 impute_stack
 }
 \examples{
+\dontrun{
 # divide isis data into test and train
 set.seed(1)
 index <- sample.int(150, 100)
@@ -78,5 +79,5 @@ mapply(metric_relative
        , imputed_pr
        , as.data.frame(is.na(iris_test_missing))
        )
-
+}
 }

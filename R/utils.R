@@ -118,22 +118,22 @@ oob_error.randomForest <- function(model){
 #' @return  A numerical value with an attribute. See description.
 #' @examples
 #' temp <- ranger::ranger(Species ~., data = iris)
-#' res <- extract_ooberror(temp)
+#' res <- oob_error(temp)
 #' res
 #' attr(res, "measure")
 #'
 #' temp <- ranger::ranger(Sepal.Length ~., data = iris)
-#' res <- extract_ooberror(temp)
+#' res <- oob_error(temp)
 #' res
 #' attr(res, "measure")
 #'
 #' temp <- randomForest::randomForest(Species ~., data = iris)
-#' res <- extract_ooberror(temp)
+#' res <- oob_error(temp)
 #' res
 #' attr(res, "measure")
 #'
 #' temp <- randomForest::randomForest(Sepal.Length ~., data = iris)
-#' res <- extract_ooberror(temp)
+#' res <- oob_error(temp)
 #' res
 #' attr(res, "measure")
 #'

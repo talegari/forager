@@ -8,6 +8,7 @@
 #' @param ... Arguments to be passed to \code{\link[missRanger]{missRanger}} when method is 'missforest',  \code{\link{forest_impute}} when method is 'proximity'
 #' @return (dataframe) completed dataset
 #' @examples
+#' \dontrun{
 #' # divide isis data into test and train
 #' set.seed(1)
 #' index <- sample.int(150, 100)
@@ -62,7 +63,7 @@
 #'        , imputed_pr
 #'        , as.data.frame(is.na(iris_test_missing))
 #'        )
-#'
+#' }
 #' @export
 
 stack_impute <- function(dataset

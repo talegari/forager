@@ -4,8 +4,9 @@
 \alias{forage}
 \title{Obtain various outputs using a trained tree ensemble on new data}
 \usage{
-forage(object, newdata, what = "dissimilarity", method = "terminalNodes",
-  context = "observations", classes = NULL, ...)
+forage(object, newdata, what = "dissimilarity",
+  method = "terminalNodes", context = "observations", classes = NULL,
+  ...)
 }
 \arguments{
 \item{object}{Object of class 'ranger', 'randomForest'}
@@ -74,6 +75,7 @@ Obtain terminalNodesMatrix, dissimilarity, proximity,
   }
 }
 \examples{
+\dontrun{
 library("magrittr")
 library("ggplot2")
 
@@ -189,4 +191,5 @@ di_supervised_trees  <- forage(model_ranger_supervised
 di_supervised_trees \%>\% as.matrix() \%>\% image()
 di_supervised_trees \%>\% as.matrix() \%>\% density() \%>\% plot()
 # indication of low 'correlation' between trees.
+}
 }

@@ -18,7 +18,7 @@ generate synthetic data. Else, uniform sampling is used.}
 \item{implementation}{(string) Implemenation to use to build the model. The
 following are supported: 'ranger', 'randomForest'.}
 
-\item{...}{Arguments to be passed to \code{\link[ranger]{ranger}}.}
+\item{...}{Arguments to be passed to implementation.}
 }
 \value{
 A tree ensemble with one these classes: 'ranger', 'randomForest'
@@ -47,18 +47,15 @@ to split is set to 5.
 
 # ranger
 model_ranger <- synthetic_forest(iris, implementation = "ranger")
-summary(model_ranger)
-model_ranger$prediction.error # OOB prediction error
+oob_error(model_ranger)
 
 # randomForest
-model_randomForest <- synthetic_forest(iris, implementation = "randomForest")
-summary(model_randomForest)
-mean(model_randomForest$err.rate[,1]) # OOB prediction error
+model_rf <- synthetic_forest(iris, implementation = "randomForest")
+oob_error(model_rf)
 
 # extratrees
 model_et <- synthetic_forest(iris, implementation = "ranger", splitrule = "extratrees")
-summary(model_et)
-model_et$prediction.error # OOB prediction error
+oob_error(model_et)
 
 }
 \references{

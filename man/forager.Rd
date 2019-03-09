@@ -4,7 +4,6 @@
 \name{forager}
 \alias{forager}
 \alias{forager-package}
-\alias{forager-package}
 \title{Compute auxiliary information (proximity, dissimilarity, outlyingness, depth) and imputation from tree ensembles on new data}
 \description{
 \pkg{unsupervised} package provides unsupervised random forest methods to
